@@ -1,0 +1,60 @@
+﻿namespace MLib.Mathematics.Spatial
+{
+    public struct BoundingBox
+    {
+        public static BoundingBox FromPoints(IEnumerable<Vector3D> points)
+        {
+            var min = new Vector3D(double.MaxValue, double.MaxValue, double.MaxValue);
+            var max = new Vector3D(double.MinValue, double.MinValue, double.MinValue);
+            foreach (var point in points)
+            {
+                min.X = Math.Min(min.X, point.X);
+                min.Y = Math.Min(min.Y, point.Y);
+                min.Z = Math.Min(min.Z, point.Z);
+
+                max.X = Math.Max(max.X, point.X);
+                max.Y = Math.Max(max.Y, point.Y);
+                max.Z = Math.Max(max.Z, point.Z);
+            }
+            return new BoundingBox(min, max);
+        }
+
+        public static BoundingBox FromBoundingBoxes(IEnumerable<BoundingBox> boundingBoxes) => FromPoints(boundingBoxes.Select(bb => bb.Min).Concat(boundingBoxes.Select(bb => bb.Max)));
+
+
+        public Vector3D Min;
+        public Vector3D Max;
+
+        public Vector3D Center => (Min + Max) / 2;
+
+
+        public BoundingBox(Vector3D min, Vector3D max)
+        {
+            Min = min;
+            Max = max;
+        }
+
+        public BoundingBox ExpandBy(double thickness)
+            => new BoundingBox(Min - new Vector3D(thickness, thickness, thickness), Max + new Vector3D(thickness, thickness, thickness));
+
+        public BoundingBox CombineWith(BoundingBox other)
+            => new BoundingBox(
+                new Vector3D(Math.Min(Min.X, other.Min.X), Math.Min(Min.Y, other.Min.Y), Math.Min(Min.Z, other.Min.Z)),
+                new Vector3D(Math.Max(Max.X, other.Max.X), Math.Max(Max.Y, other.Max.Y), Math.Max(Max.Z, other.Max.Z)));
+
+        public bool Contains(Vector3D point)
+        {
+            return point.X >= Min.X && point.Y >= Min.Y && point.Z >= Min.Z &&
+                   point.X <= Max.X && point.Y <= Max.Y && point.Z <= Max.Z;
+        }
+
+        public bool Contains(BoundingBox other) => Contains(other.Min) && Contains(other.Max);
+
+        public bool Touches(BoundingBox other)
+        {
+            return Min.X < other.Max.X && Max.X > other.Min.X &&
+                Min.Y < other.Max.Y && Max.Y > other.Min.Y &&
+                Min.Z < other.Max.Z && Max.Z > other.Min.Z;
+        }
+    }
+}

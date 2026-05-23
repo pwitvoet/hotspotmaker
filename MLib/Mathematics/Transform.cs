@@ -1,0 +1,28 @@
+﻿using MLib.Mathematics.Spatial;
+
+namespace MLib.Mathematics
+{
+    public class Transform
+    {
+        public static Transform Identity => new Transform(1, new Vector3D(1, 1, 1), Matrix3x3.Identity, new Vector3D());
+
+
+        public double Scale;
+        public Vector3D GeometryScale;
+        public Matrix3x3 Rotation;
+        public Vector3D Offset;
+
+        public Transform(double scale, Vector3D geometryScale, Matrix3x3 rotation, Vector3D offset)
+        {
+            Scale = scale;
+            GeometryScale = geometryScale;
+            Rotation = rotation;
+            Offset = offset;
+        }
+
+        public Vector3D Apply(Vector3D point) => Offset + (Rotation * (point * GeometryScale));
+
+
+        public override string ToString() => $"(scale: {Scale}, geometry scale: {GeometryScale}, rotation: {Rotation}, offset: {Offset})";
+    }
+}
