@@ -253,6 +253,30 @@ namespace HotspotMaker
         public void RedoLastAction()
             => HotspotProject?.RedoLastAction();
 
+        public void ToggleGrid()
+        {
+            if (HotspotProject == null)
+                return;
+
+            HotspotProject.HotspotEditor.ToggleGrid();
+        }
+
+        public void IncreaseGridSize()
+        {
+            if (HotspotProject == null)
+                return;
+
+            HotspotProject.HotspotEditor.IncreaseGridSize();
+        }
+
+        public void DecreaseGridSize()
+        {
+            if (HotspotProject == null)
+                return;
+
+            HotspotProject.HotspotEditor.DecreaseGridSize();
+        }
+
 
         private void HotspotProject_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

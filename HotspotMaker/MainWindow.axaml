@@ -37,6 +37,11 @@
                 <MenuItem Header="_Undo" InputGesture="Ctrl+Z" Command="{Binding UndoLastAction}" IsEnabled="{Binding IsUndoAvailable}" />
                 <MenuItem Header="_Redo" InputGesture="Ctrl+Y" Command="{Binding RedoLastAction}" IsEnabled="{Binding IsRedoAvailable}" />
             </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Toggle grid" InputGesture="G" Command="{Binding ToggleGrid}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="_Increase grid size" InputGesture="OemCloseBrackets" Command="{Binding IncreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="_Decrease grid size" InputGesture="OemOpenBrackets" Command="{Binding DecreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
+            </MenuItem>
             <!--<MenuItem Header="Help">
                 <MenuItem Header="About" />
             </MenuItem>-->

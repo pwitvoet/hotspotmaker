@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using HotspotMaker.Hotspot;
@@ -33,8 +34,20 @@ public partial class HotspotEditorView : UserControl
         ResizeSelectedRectangles,       // Drag resize handle
     }
 
-
     private const double PointSelectionMoveThreshold = 2;
+
+
+    public static readonly DirectProperty<HotspotEditorView, bool> IsGridEnabledProperty = AvaloniaProperty.RegisterDirect<HotspotEditorView, bool>(
+        nameof(IsGridEnabled),
+        o => o.IsGridEnabled,
+        (o, v) => o.IsGridEnabled = v,
+        defaultBindingMode: BindingMode.TwoWay);
+
+    public static readonly DirectProperty<HotspotEditorView, double> GridSizeProperty = AvaloniaProperty.RegisterDirect<HotspotEditorView, double>(
+        nameof(GridSize),
+        o => o.GridSize,
+        (o, v) => o.GridSize = v,
+        defaultBindingMode: BindingMode.TwoWay);
 
 
     public event Action<HotspotRectangleVM>? RectangleClicked;
@@ -61,14 +74,14 @@ public partial class HotspotEditorView : UserControl
     private bool IsGridEnabled
     {
         get => _isGridEnabled;
-        set { _isGridEnabled = value; InvalidateVisual(); }
+        set { SetAndRaise(IsGridEnabledProperty, ref _isGridEnabled, value); InvalidateVisual(); }
     }
 
     private double _gridSize = 16;
     private double GridSize
     {
         get => _gridSize;
-        set { _gridSize = value; InvalidateVisual(); }
+        set { SetAndRaise(GridSizeProperty, ref _gridSize, value); InvalidateVisual(); }
     }
 
     private PointerButtons PointerState { get; set; }
@@ -146,24 +159,19 @@ public partial class HotspotEditorView : UserControl
             {
                 // Toggle grid:
                 case Key.G:
-                    IsGridEnabled = !IsGridEnabled;
-
+                    Editor?.ToggleGrid();
                     e.Handled = true;
                     break;
 
                 // Decrease grid size with '['
                 case Key.OemOpenBrackets:
-                    if (GridSize > 1)
-                        GridSize /= 2;
-
+                    Editor?.DecreaseGridSize();
                     e.Handled = true;
                     break;
 
                 // Increase grid size with ']'
                 case Key.OemCloseBrackets:
-                    if (GridSize < 1024)
-                        GridSize *= 2;
-
+                    Editor?.IncreaseGridSize();
                     e.Handled = true;
                     break;
             }

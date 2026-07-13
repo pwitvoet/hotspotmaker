@@ -67,6 +67,20 @@ namespace HotspotMaker.Editor
 
         public HotspotRectangleSelectionVM Selection { get; }
 
+        private bool _isGridEnabled = true;
+        public bool IsGridEnabled
+        {
+            get => _isGridEnabled;
+            set { _isGridEnabled = value; RaisePropertyChanged(); }
+        }
+
+        private double _gridSize = 16;
+        public double GridSize
+        {
+            get => _gridSize;
+            set { _gridSize = value; RaisePropertyChanged(); }
+        }
+
 
         // Internal state:
         private Point CurrentOperationStartCoordinate { get; set; }
@@ -180,6 +194,21 @@ namespace HotspotMaker.Editor
             Selection.Add(rectangleVMs);
 
             return PasteResult.Success;
+        }
+
+
+        public void ToggleGrid() => IsGridEnabled = !IsGridEnabled;
+
+        public void IncreaseGridSize()
+        {
+            if (GridSize < 1024)
+                GridSize *= 2;
+        }
+
+        public void DecreaseGridSize()
+        {
+            if (GridSize > 1)
+                GridSize /= 2;
         }
 
 

@@ -45,8 +45,8 @@
             <Border Grid.Row="0" BorderBrush="Black" BorderThickness="1">
                 <Grid RowDefinitions="Auto,*">
                     <TextBlock Grid.Row="0" Text="{Binding SelectedTextureInfo.Name}" FontWeight="Bold" Margin="5" />
-                    <editor:HotspotEditorView x:Name="EditorView" Grid.Row="1" DataContext="{Binding HotspotEditor}" Focusable="True" />
-                    <!-- TODO: Zoom controls? -->
+                    <editor:HotspotEditorView x:Name="EditorView" Grid.Row="1" DataContext="{Binding HotspotEditor}" Focusable="True"
+                                              IsGridEnabled="{Binding IsGridEnabled}" GridSize="{Binding GridSize}" />
                 </Grid>
             </Border>
 
