@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Input.Platform;
 using Avalonia.Media;
 using HotspotMaker.History;
 using HotspotMaker.Hotspot;
@@ -9,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HotspotMaker.Editor
 {
@@ -71,12 +73,16 @@ namespace HotspotMaker.Editor
         private HotspotRectangleVM[] CurrentOperationRectangles { get; set; } = Array.Empty<HotspotRectangleVM>();
         private Point[] CurrentOperationOriginalPositions { get; set; } = Array.Empty<Point>();
 
+        private IClipboard? Clipboard { get; }
 
-        public HotspotEditorVM(UndoSystem undoSystem, HotspotRectangleSelectionVM selection)
+
+        public HotspotEditorVM(UndoSystem undoSystem, HotspotRectangleSelectionVM selection, IClipboard? clipboard)
             : base(undoSystem)
         {
             Selection = selection;
             Selection.SelectionChanged += Selection_SelectionChanged;
+
+            Clipboard = clipboard;
         }
 
         public HotspotRectangleVM[] GetRectanglesAtPoint(Point point)
@@ -107,20 +113,54 @@ namespace HotspotMaker.Editor
         }
 
 
-        public HotspotRectangleVM[]? AddRectanglesWithOffset(HotspotRectangle[] rectangles, Point offset)
+        public async Task CopySelectionToClipboard(bool deleteSelection = false)
+        {
+            if (Clipboard == null)
+                return;
+
+
+            var rectangles = Selection.Rectangles
+                .Select(rectangleVM => rectangleVM.CreateHotspotRectangle())
+                .ToArray();
+            var json = HotspotFileWriter.Serialize(rectangles);
+            await Clipboard.SetTextAsync(json);
+
+            if (deleteSelection)
+                DeleteSelectedRectangles();
+        }
+
+        public async Task<PasteResult> PasteFromClipboard()
         {
             var rectangleSet = RectangleSet;
             if (rectangleSet == null)
-                return null;
+                return PasteResult.NoTargetRectangleSet;
 
+            if (Clipboard == null)
+                return PasteResult.ClipboardNotAvailable;
+
+
+            var json = await Clipboard.TryGetTextAsync();
+            if (json == null)
+                return PasteResult.ClipboardEmpty;
+
+            HotspotRectangle[]? rectangles = null;
+            try
+            {
+                rectangles = HotspotFileParser.DeserializeHotspotRectangles(json);
+            }
+            catch
+            {
+                return PasteResult.ClipboardInvalidData;
+            }
+
+            // Create VM instances, and apply an offset to make the pasted rectangles more 'visible' when pasting immediately after copying:
             var rectangleVMs = rectangles
                 .Select(rectangle => new HotspotRectangleVM(rectangle, UndoSystem))
                 .ToArray();
-
             foreach (var rectangleVM in rectangleVMs)
             {
-                rectangleVM.X += offset.X;
-                rectangleVM.Y += offset.Y;
+                rectangleVM.X += 32;
+                rectangleVM.Y += 32;
             }
 
             PerformUndoableAction(
@@ -135,7 +175,11 @@ namespace HotspotMaker.Editor
                         rectangleSet.Rectangles.Remove(rectangleVM);
                 });
 
-            return rectangleVMs;
+            // Select the newly pasted rectangles:
+            Selection.Clear();
+            Selection.Add(rectangleVMs);
+
+            return PasteResult.Success;
         }
 
 

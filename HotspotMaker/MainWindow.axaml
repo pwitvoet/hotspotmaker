@@ -14,9 +14,6 @@
         <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCurrentProject}" />
         <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseCurrentProject}" />
         <KeyBinding Gesture="Alt+F4" Command="{Binding ExitProgram}" />
-        <KeyBinding Gesture="Ctrl+X" Command="{Binding CutSelection}" />
-        <KeyBinding Gesture="Ctrl+C" Command="{Binding CopySelection}" />
-        <KeyBinding Gesture="Ctrl+V" Command="{Binding PasteSelection}" />
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoLastAction}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoLastAction}" />
     </Window.KeyBindings>

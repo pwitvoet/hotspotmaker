@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Input.Platform;
+﻿using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using HotspotMaker.Controls;
 using HotspotMaker.Hotspot;
@@ -118,7 +117,7 @@ namespace HotspotMaker
                 {
                     var wadFilePath = selectedFiles.First().Path.LocalPath;
                     var hotspotFilePath = wadFilePath + ".hotspot";
-                    HotspotProject = HotspotProjectVM.Load(wadFilePath, hotspotFilePath);
+                    HotspotProject = HotspotProjectVM.Load(wadFilePath, hotspotFilePath, Clipboard);
 
                     StatusMessage = $"Opened '{wadFilePath}'.";
                 }
@@ -192,8 +191,7 @@ namespace HotspotMaker
 
             try
             {
-                await CopySelection();
-                HotspotProject.HotspotEditor.DeleteSelectedRectangles();
+                await HotspotProject.HotspotEditor.CopySelectionToClipboard(deleteSelection: true);
             }
             catch (Exception ex)
             {
@@ -208,12 +206,7 @@ namespace HotspotMaker
 
             try
             {
-                var rectangles = HotspotProject.Selection.Rectangles
-                    .Select(rectangleVM => rectangleVM.CreateHotspotRectangle())
-                    .ToArray();
-                var json = HotspotFileWriter.Serialize(rectangles);
-
-                await Clipboard.SetTextAsync(json);
+                await HotspotProject.HotspotEditor.CopySelectionToClipboard();
             }
             catch (Exception ex)
             {
@@ -228,29 +221,24 @@ namespace HotspotMaker
 
             try
             {
-                var json = await Clipboard.TryGetTextAsync();
-                if (json == null)
+                var pasteResult = await HotspotProject.HotspotEditor.PasteFromClipboard();
+                switch (pasteResult)
                 {
-                    StatusMessage = $"Paste failed: clipboard is empty.";
-                    return;
-                }
+                    case Editor.PasteResult.NoTargetRectangleSet:
+                        StatusMessage = $"Cannot paste, no hotspot rectangle set selected.";
+                        break;
 
-                HotspotRectangle[]? rectangles = null;
-                try
-                {
-                    rectangles = HotspotFileParser.DeserializeHotspotRectangles(json);
-                }
-                catch (Exception ex)
-                {
-                    StatusMessage = $"Paste failed: clipboard does not contain valid hotspot rectangle data.";
-                    return;
-                }
+                    case Editor.PasteResult.ClipboardEmpty:
+                        StatusMessage = $"Paste failed: clipboard is empty.";
+                        break;
 
-                var rectangleVMs = HotspotProject.HotspotEditor.AddRectanglesWithOffset(rectangles, new Point(32, 32));
-                if (rectangleVMs != null)
-                {
-                    HotspotProject.Selection.Clear();
-                    HotspotProject.Selection.Add(rectangleVMs);
+                    case Editor.PasteResult.ClipboardInvalidData:
+                        StatusMessage = $"Paste failed: clipboard does not contain valid hotspot rectangle data.";
+                        break;
+
+                    case Editor.PasteResult.ClipboardNotAvailable:
+                        StatusMessage = $"Paste failed: clipboard not available.";
+                        break;
                 }
             }
             catch (Exception ex)

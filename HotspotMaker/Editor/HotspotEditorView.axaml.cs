@@ -4,7 +4,6 @@ using Avalonia.Input;
 using Avalonia.Media;
 using HotspotMaker.Hotspot;
 using System;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 
@@ -113,40 +112,61 @@ public partial class HotspotEditorView : UserControl
 
     public void HandleKeyDown(KeyEventArgs e)
     {
-        switch (e.Key)
+        if (KeyModifiers.HasFlag(KeyModifiers.Control))
         {
-            case Key.A:
-                if (KeyModifiers.HasFlag(KeyModifiers.Control))
-                {
-                    // Select all:
+            switch (e.Key)
+            {
+                // Select all:
+                case Key.A:
                     var editor = Editor;
                     if (editor?.RectangleSet != null)
                         editor.SetSelection(editor.RectangleSet.Rectangles);
-                }
-                break;
+                    break;
 
-            case Key.G:
+                // TODO: These should also show status messages on failure, like the menu commands!
+                //Cut:
+                case Key.X:
+                    Editor?.CopySelectionToClipboard(deleteSelection: true);
+                    break;
+
+                // Copy:
+                case Key.C:
+                    Editor?.CopySelectionToClipboard();
+                    break;
+
+                // Paste:
+                case Key.V:
+                    Editor?.PasteFromClipboard();
+                    break;
+            }
+        }
+        else
+        {
+            switch (e.Key)
+            {
                 // Toggle grid:
-                IsGridEnabled = !IsGridEnabled;
+                case Key.G:
+                    IsGridEnabled = !IsGridEnabled;
 
-                e.Handled = true;
-                break;
+                    e.Handled = true;
+                    break;
 
-            case Key.OemOpenBrackets:
                 // Decrease grid size with '['
-                if (GridSize > 1)
-                    GridSize /= 2;
+                case Key.OemOpenBrackets:
+                    if (GridSize > 1)
+                        GridSize /= 2;
 
-                e.Handled = true;
-                break;
+                    e.Handled = true;
+                    break;
 
-            case Key.OemCloseBrackets:
                 // Increase grid size with ']'
-                if (GridSize < 1024)
-                    GridSize *= 2;
+                case Key.OemCloseBrackets:
+                    if (GridSize < 1024)
+                        GridSize *= 2;
 
-                e.Handled = true;
-                break;
+                    e.Handled = true;
+                    break;
+            }
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using HotspotMaker.Editor;
@@ -20,7 +21,7 @@ namespace HotspotMaker.Hotspot
     public class HotspotProjectVM : ChangeTrackingVM
     {
         // TODO: Improve error reporting!
-        public static HotspotProjectVM Load(string wadFilePath, string hotspotFilePath)
+        public static HotspotProjectVM Load(string wadFilePath, string hotspotFilePath, IClipboard? clipboard)
         {
             WadFile wadFile;
             try
@@ -51,7 +52,7 @@ namespace HotspotMaker.Hotspot
                 throw;
             }
 
-            return new HotspotProjectVM(wadFile, hotspotFileData, hotspotFilePath);
+            return new HotspotProjectVM(wadFile, hotspotFileData, hotspotFilePath, clipboard);
         }
 
 
@@ -147,7 +148,7 @@ namespace HotspotMaker.Hotspot
         private List<(Regex, HotspotBindingVM)> WildcardHotspotBindings { get; } = new();
 
 
-        public HotspotProjectVM(WadFile wadFile, HotspotFileData hotspotFileData, string hotspotFilePath)
+        public HotspotProjectVM(WadFile wadFile, HotspotFileData hotspotFileData, string hotspotFilePath, IClipboard? clipboard)
             : base(new UndoSystem())
         {
             HotspotBindings.CollectionChanged += HotspotBindings_CollectionChanged;
@@ -160,7 +161,7 @@ namespace HotspotMaker.Hotspot
             Selection = new HotspotRectangleSelectionVM(UndoSystem);
             Selection.PropertyChanged += Selection_PropertyChanged;
 
-            HotspotEditor = new HotspotEditorVM(UndoSystem, Selection);
+            HotspotEditor = new HotspotEditorVM(UndoSystem, Selection, clipboard);
             HotspotEditor.PropertyChanged += HotspotEditor_PropertyChanged;
 
             foreach (var binding in hotspotFileData.Bindings)
