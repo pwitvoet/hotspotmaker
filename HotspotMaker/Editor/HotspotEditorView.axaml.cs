@@ -139,31 +139,48 @@ public partial class HotspotEditorView : UserControl
 
     public void HandleKeyDown(KeyEventArgs e)
     {
+        if (e.Handled)
+            return;
+
+        var editor = Editor;
+        if (editor == null)
+            return;
+
+        var handled = true;
         if (KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             switch (e.Key)
             {
                 // Select all:
                 case Key.A:
-                    var editor = Editor;
-                    if (editor?.RectangleSet != null)
+                    if (editor.RectangleSet != null)
                         editor.SetSelection(editor.RectangleSet.Rectangles);
                     break;
 
                 // TODO: These should also show status messages on failure, like the menu commands!
                 //Cut:
                 case Key.X:
-                    Editor?.CopySelectionToClipboard(deleteSelection: true);
+                    _ = editor.CopySelectionToClipboard(deleteSelection: true);
                     break;
 
                 // Copy:
                 case Key.C:
-                    Editor?.CopySelectionToClipboard();
+                    _ = editor.CopySelectionToClipboard();
                     break;
 
                 // Paste:
                 case Key.V:
-                    Editor?.PasteFromClipboard();
+                    _ = editor.PasteFromClipboard();
+                    break;
+
+                // Hotkeys for quickly toggling concave edges:
+                case Key.Up: editor.Selection.IsTopConcave.Value = !(editor.Selection.IsTopConcave.Value ?? true); break;
+                case Key.Down: editor.Selection.IsBottomConcave.Value = !(editor.Selection.IsBottomConcave.Value ?? true); break;
+                case Key.Left: editor.Selection.IsLeftConcave.Value = !(editor.Selection.IsLeftConcave.Value ?? true); break;
+                case Key.Right: editor.Selection.IsRightConcave.Value = !(editor.Selection.IsRightConcave.Value ?? true); break;
+
+                default:
+                    handled = false;
                     break;
             }
         }
@@ -171,25 +188,49 @@ public partial class HotspotEditorView : UserControl
         {
             switch (e.Key)
             {
+                // Hotkeys for quickly adjusting certain rectangle properties:
+                case Key.R: editor.Selection.AllowRotation.Value = !(editor.Selection.AllowRotation.Value ?? true); break;
+                case Key.H: editor.Selection.AllowHorizontalMirroring.Value = !(editor.Selection.AllowHorizontalMirroring.Value ?? true); break;
+                case Key.V: editor.Selection.AllowVerticalMirroring.Value = !(editor.Selection.AllowVerticalMirroring.Value ?? true); break;
+                case Key.K: editor.Selection.CycleHorizontalLayout(); break;
+                case Key.L: editor.Selection.CycleVerticalLayout(); break;
+
+                // Hotkeys for quickly adding or removing common labels:
+                case Key.D0:
+                case Key.D1:
+                case Key.D2:
+                case Key.D3:
+                case Key.D4:
+                case Key.D5:
+                case Key.D6:
+                case Key.D7:
+                case Key.D8:
+                case Key.D9:
+                    editor.Selection.ToggleCommonLabel(e.Key - Key.D0);
+                    break;
+
                 // Toggle grid:
                 case Key.G:
-                    Editor?.ToggleGrid();
-                    e.Handled = true;
+                    editor.ToggleGrid();
                     break;
 
                 // Decrease grid size with '['
                 case Key.OemOpenBrackets:
-                    Editor?.DecreaseGridSize();
-                    e.Handled = true;
+                    editor.DecreaseGridSize();
                     break;
 
                 // Increase grid size with ']'
                 case Key.OemCloseBrackets:
-                    Editor?.IncreaseGridSize();
-                    e.Handled = true;
+                    editor.IncreaseGridSize();
+                    break;
+
+                default:
+                    handled = false;
                     break;
             }
         }
+
+        e.Handled = handled;
     }
 
     public override void Render(DrawingContext context)
@@ -418,6 +459,9 @@ public partial class HotspotEditorView : UserControl
     {
         base.OnKeyDown(e);
 
+        if (e.Handled)
+            return;
+
         KeyModifiers = e.KeyModifiers;
 
         var editor = Editor;
@@ -430,8 +474,9 @@ public partial class HotspotEditorView : UserControl
             if (e.Key == Key.Delete)
             {
                 editor.DeleteSelectedRectangles();
+                e.Handled = true;
             }
-            else if (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right)
+            else if (!KeyModifiers.HasFlag(KeyModifiers.Control) && (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right))
             {
                 var distance = IsGridEnabled ? GridSize : 1;
                 var movement = new Vector(0, 0);
@@ -442,6 +487,8 @@ public partial class HotspotEditorView : UserControl
 
                 if (movement.X != 0 || movement.Y != 0)
                     editor.MoveSelectedRectangles(movement);
+
+                e.Handled = true;
             }
         }
     }

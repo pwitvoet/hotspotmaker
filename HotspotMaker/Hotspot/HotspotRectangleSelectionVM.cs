@@ -145,6 +145,106 @@ namespace HotspotMaker.Hotspot
         }
 
 
+        public void CycleHorizontalLayout() => CycleHotspotLayoutValue(HorizontalLayout);
+
+        public void CycleVerticalLayout() => CycleHotspotLayoutValue(VerticalLayout);
+
+        public void ToggleCommonLabel(int labelNumber)
+        {
+            if (IsEmpty)
+                return;
+
+            // TODO: Fetch label from configuration! Return here if there is no label for this number!
+            var newLabel = $"LABEL_#{labelNumber}";
+
+
+            var selectedRectangles = Rectangles.ToArray();
+            var rectanglesWithLabel = selectedRectangles
+                .Where(rectangleVM => rectangleVM.Labels.Contains(newLabel))
+                .ToArray();
+
+            if (rectanglesWithLabel.Any())
+            {
+                var originalIndices = rectanglesWithLabel
+                    .Select(rectangleVM => rectangleVM.Labels.TakeWhile(label => label != newLabel).Count())
+                    .ToArray();
+
+                // Remove this label from all selected rectangles:
+                PerformUndoableAction(
+                    () =>
+                    {
+                        for (int i = 0; i < rectanglesWithLabel.Length; i++)
+                        {
+                            var rectangleVM = rectanglesWithLabel[i];
+                            var index = originalIndices[i];
+
+                            rectangleVM.WithoutUndo(() =>
+                            {
+                                rectangleVM.Labels = rectangleVM.Labels
+                                    .Take(index)
+                                    .Concat(rectangleVM.Labels.Skip(index + 1))
+                                    .ToArray();
+                            });
+                        }
+                    },
+                    () =>
+                    {
+                        for (int i = 0; i < rectanglesWithLabel.Length; i++)
+                        {
+                            var rectangleVM = rectanglesWithLabel[i];
+                            var index = originalIndices[i];
+
+                            rectangleVM.WithoutUndo(() =>
+                            {
+                                rectangleVM.Labels = rectangleVM.Labels
+                                    .Take(index)
+                                    .Append(newLabel)
+                                    .Concat(rectangleVM.Labels.Skip(index))
+                                    .ToArray();
+                            });
+                        }
+                    });
+            }
+            else
+            {
+                // Add this label to all selected rectangles:
+                PerformUndoableAction(
+                    () =>
+                    {
+                        foreach (var rectangleVM in selectedRectangles)
+                        {
+                            rectangleVM.WithoutUndo(() =>
+                            {
+                                rectangleVM.Labels = rectangleVM.Labels.Append(newLabel).ToArray();
+                            });
+                        }
+                    },
+                    () =>
+                    {
+                        foreach (var rectangleVM in selectedRectangles)
+                        {
+                            rectangleVM.WithoutUndo(() =>
+                            {
+                                rectangleVM.Labels = rectangleVM.Labels.Take(rectangleVM.Labels.Length - 1).ToArray();
+                            });
+                        }
+                    });
+            }
+        }
+
+
+        private void CycleHotspotLayoutValue(MultiValue<HotspotLayout> layoutValue)
+        {
+            if (IsEmpty)
+                return;
+
+            layoutValue.Value = layoutValue.HasMultipleValues ? HotspotLayout.Fit :
+                       layoutValue.Value == HotspotLayout.Fit ? HotspotLayout.Clip :
+                      layoutValue.Value == HotspotLayout.Clip ? HotspotLayout.Tile :
+                                                                HotspotLayout.Fit;
+        }
+
+
         private void Rectangles_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             UpdateMultiProperties();
