@@ -556,7 +556,7 @@ public partial class HotspotEditorView : UserControl
             // TODO: Update resize operation!
         }
 
-        if (PointerState.HasFlag(PointerButtons.Right))
+        if (PointerState.HasFlag(PointerButtons.Right) || PointerState.HasFlag(PointerButtons.Middle))
         {
             CameraOffset += delta;
         }
