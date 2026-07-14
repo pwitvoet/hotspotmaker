@@ -46,7 +46,9 @@
                 <Grid RowDefinitions="Auto,*">
                     <TextBlock Grid.Row="0" Text="{Binding SelectedTextureInfo.Name}" FontWeight="Bold" Margin="5" />
                     <editor:HotspotEditorView x:Name="EditorView" Grid.Row="1" DataContext="{Binding HotspotEditor}" Focusable="True"
-                                              IsGridEnabled="{Binding IsGridEnabled}" GridSize="{Binding GridSize}" />
+                                              Foreground="White"
+                                              IsGridEnabled="{Binding IsGridEnabled}" GridSize="{Binding GridSize}"
+                                              IsCoordinatesVisible="{Binding IsCoordinatesVisible}" />
                 </Grid>
             </Border>
 

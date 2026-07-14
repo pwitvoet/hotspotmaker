@@ -6,6 +6,7 @@ using Avalonia.Media;
 using HotspotMaker.Hotspot;
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 
 namespace HotspotMaker.Editor;
@@ -49,6 +50,12 @@ public partial class HotspotEditorView : UserControl
         (o, v) => o.GridSize = v,
         defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly DirectProperty<HotspotEditorView, bool> IsCoordinatesVisibleProperty = AvaloniaProperty.RegisterDirect<HotspotEditorView, bool>(
+        nameof(IsCoordinatesVisible),
+        o => o.IsCoordinatesVisible,
+        (o, v) => o.IsCoordinatesVisible = v,
+        defaultBindingMode: BindingMode.TwoWay);
+
 
     public event Action<HotspotRectangleVM>? RectangleClicked;
 
@@ -82,6 +89,13 @@ public partial class HotspotEditorView : UserControl
     {
         get => _gridSize;
         set { SetAndRaise(GridSizeProperty, ref _gridSize, value); InvalidateVisual(); }
+    }
+
+    private bool _isCoordinatesVisible = true;
+    private bool IsCoordinatesVisible
+    {
+        get => _isCoordinatesVisible;
+        set { SetAndRaise(IsCoordinatesVisibleProperty, ref _isCoordinatesVisible, value); InvalidateVisual(); }
     }
 
     private PointerButtons PointerState { get; set; }
@@ -190,11 +204,17 @@ public partial class HotspotEditorView : UserControl
             DrawTexture(context, editor);
             DrawHotspotRectangles(context, editor);
 
+            if (IsCoordinatesVisible)
+                DrawSelectionInformation(context, editor);
+
             if (PointerOperation == Operation.AreaSelection)
                 DrawSelectionArea(context, editor);
         }
 
         DrawGrid(context);
+
+        if (IsCoordinatesVisible)
+            DrawPointerCoordinates(context);
     }
 
     private void DrawTexture(DrawingContext context, HotspotEditorVM editor)
@@ -251,6 +271,21 @@ public partial class HotspotEditorView : UserControl
         }
     }
 
+    private void DrawSelectionInformation(DrawingContext context, HotspotEditorVM editor)
+    {
+        if (editor.Selection.IsEmpty)
+            return;
+
+        var bounds = editor.Selection.GetBounds();
+        var topLeft = TextureToScreenCoordinate(bounds.TopLeft);
+        var topCenter = TextureToScreenCoordinate(new Point(bounds.X + bounds.Width / 2, bounds.Y));
+        var leftCenter = TextureToScreenCoordinate(new Point(bounds.X, bounds.Y + bounds.Height / 2));
+
+        DrawText(context, $"{bounds.X}, {bounds.Y}", new Point(topLeft.X - 20, topLeft.Y - 20));
+        DrawText(context, $"{bounds.Width}", new Point(topCenter.X, topCenter.Y - 20));
+        DrawText(context, $"{bounds.Height}", new Point(leftCenter.X - 20, leftCenter.Y));
+    }
+
     private void DrawSelectionArea(DrawingContext context, HotspotEditorVM editor)
     {
         var area = GetBoundingRect(PointerOperationStartPosition, LastKnownPointerPosition);
@@ -288,6 +323,18 @@ public partial class HotspotEditorView : UserControl
             context.DrawLine(GridPen, new Point(0, yPos), new Point(Bounds.Width, yPos));
         }
     }
+
+    private void DrawPointerCoordinates(DrawingContext context)
+    {
+        var textureCoordinates = ScreenToTextureCoordinate(LastKnownPointerPosition);
+        DrawText(context, $"{Math.Round(textureCoordinates.X)}, {Math.Round(textureCoordinates.Y)}", new Point(2, 2));
+    }
+
+    private void DrawText(DrawingContext context, string text, Point position)
+    {
+        context.DrawText(new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection, Typeface.Default, 12, Foreground), position);
+    }
+
 
     protected override void OnDataContextChanged(EventArgs e)
     {
@@ -329,6 +376,7 @@ public partial class HotspotEditorView : UserControl
 
         var pointerPosition = e.GetPosition(this);
         LastKnownPointerPosition = pointerPosition;
+        InvalidateVisual();     // Update the pointer coordinates display
 
         UpdatePointerState(pointerPosition, e.Properties);
 
@@ -664,6 +712,9 @@ public partial class HotspotEditorView : UserControl
 
     private Point ScreenToTextureCoordinate(Point screenPoint)
         => (screenPoint - CameraOffset) / CameraScale;
+
+    private Point TextureToScreenCoordinate(Point texturePoint)
+        => (texturePoint * CameraScale) + CameraOffset;
 
 
     // TODO: Move these to a util or extensions class!

@@ -1,6 +1,7 @@
 ﻿using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using HotspotMaker.Controls;
+using HotspotMaker.Editor;
 using HotspotMaker.Hotspot;
 using MLib.Texturing.Hotspotting;
 using System;
@@ -45,6 +46,7 @@ namespace HotspotMaker
                 if (_hotspotProject != null)
                 {
                     _hotspotProject.PropertyChanged -= HotspotProject_PropertyChanged;
+                    _hotspotProject.HotspotEditor.PropertyChanged -= HotspotEditor_PropertyChanged;
                     _hotspotProject.Selection.SelectionChanged -= Selection_SelectionChanged;
                 }
 
@@ -53,6 +55,7 @@ namespace HotspotMaker
                 if (_hotspotProject != null)
                 {
                     _hotspotProject.PropertyChanged += HotspotProject_PropertyChanged;
+                    _hotspotProject.HotspotEditor.PropertyChanged += HotspotEditor_PropertyChanged;
                     _hotspotProject.Selection.SelectionChanged += Selection_SelectionChanged;
                 }
 
@@ -61,6 +64,8 @@ namespace HotspotMaker
                 RaisePropertyChanged(nameof(IsCutAvailable));
                 RaisePropertyChanged(nameof(IsCopyAvailable));
                 RaisePropertyChanged(nameof(IsPasteAvailable));
+                RaisePropertyChanged(nameof(IsGridEnabled));
+                RaisePropertyChanged(nameof(IsCoordinatesVisible));
                 RaisePropertyChanged();
             }
         }
@@ -78,6 +83,10 @@ namespace HotspotMaker
         public bool IsUndoAvailable => HotspotProject?.IsUndoAvailable == true;
 
         public bool IsRedoAvailable => HotspotProject?.IsRedoAvailable == true;
+
+        public bool IsGridEnabled => HotspotProject?.HotspotEditor.IsGridEnabled == true;
+
+        public bool IsCoordinatesVisible => HotspotProject?.HotspotEditor.IsCoordinatesVisible == true;
 
 
         private IStorageProvider StorageProvider { get; }
@@ -277,6 +286,14 @@ namespace HotspotMaker
             HotspotProject.HotspotEditor.DecreaseGridSize();
         }
 
+        public void ToggleCoordinatesDisplay()
+        {
+            if (HotspotProject == null)
+                return;
+
+            HotspotProject.HotspotEditor.ToggleCoordinatesDisplay();
+        }
+
 
         private void HotspotProject_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
@@ -286,6 +303,14 @@ namespace HotspotMaker
                 RaisePropertyChanged(nameof(IsRedoAvailable));
             else if (e.PropertyName == nameof(HotspotProjectVM.IsModified))
                 UpdateWindowTitle(HotspotProject);
+        }
+
+        private void HotspotEditor_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(HotspotEditorVM.IsGridEnabled))
+                RaisePropertyChanged(nameof(IsGridEnabled));
+            else if (e.PropertyName == nameof(HotspotEditorVM.IsCoordinatesVisible))
+                RaisePropertyChanged(nameof(IsCoordinatesVisible));
         }
 
         private void Selection_SelectionChanged(HotspotRectangleVM[] deselected, HotspotRectangleVM[] selected)

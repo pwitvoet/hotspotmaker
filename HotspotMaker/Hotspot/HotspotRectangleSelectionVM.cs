@@ -1,4 +1,5 @@
-﻿using HotspotMaker.History;
+﻿using Avalonia;
+using HotspotMaker.History;
 using HotspotMaker.Util;
 using MLib.Texturing.Hotspotting;
 using System;
@@ -121,6 +122,26 @@ namespace HotspotMaker.Hotspot
         public bool IsSelected(HotspotRectangleVM rectangleVM)
         {
             return Rectangles.Contains(rectangleVM);
+        }
+
+        public Rect GetBounds()
+        {
+            if (_rectangles.Count == 0)
+                return new Rect();
+
+            var minX = double.MaxValue;
+            var maxX = double.MinValue;
+            var minY = double.MaxValue;
+            var maxY = double.MinValue;
+
+            foreach (var rectangle in Rectangles)
+            {
+                minX = Math.Min(minX, rectangle.X);
+                maxX = Math.Max(maxX, rectangle.X + rectangle.Width);
+                minY = Math.Min(minY, rectangle.Y);
+                maxY = Math.Max(maxY, rectangle.Y + rectangle.Height);
+            }
+            return new Rect(minX, minY, maxX - minX, maxY - minY);
         }
 
 

@@ -81,6 +81,13 @@ namespace HotspotMaker.Editor
             set { _gridSize = value; RaisePropertyChanged(); }
         }
 
+        private bool _showCoordinates = true;
+        public bool IsCoordinatesVisible
+        {
+            get => _showCoordinates;
+            set { _showCoordinates = value; RaisePropertyChanged(); }
+        }
+
 
         // Internal state:
         private Point CurrentOperationStartCoordinate { get; set; }
@@ -210,6 +217,8 @@ namespace HotspotMaker.Editor
             if (GridSize > 1)
                 GridSize /= 2;
         }
+
+        public void ToggleCoordinatesDisplay() => IsCoordinatesVisible = !IsCoordinatesVisible;
 
 
         public void StartDuplicateRectanglesOperation(Point startTextureCoordinate, double gridSize, bool snapToGrid)

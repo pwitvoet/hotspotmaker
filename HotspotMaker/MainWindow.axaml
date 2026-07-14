@@ -38,9 +38,13 @@
                 <MenuItem Header="_Redo" InputGesture="Ctrl+Y" Command="{Binding RedoLastAction}" IsEnabled="{Binding IsRedoAvailable}" />
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="_Toggle grid" InputGesture="G" Command="{Binding ToggleGrid}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="Show _grid" InputGesture="G" Command="{Binding ToggleGrid}" IsEnabled="{Binding HasOpenProject}"
+                          ToggleType="CheckBox" IsChecked="{Binding IsGridEnabled}" />
                 <MenuItem Header="_Increase grid size" InputGesture="OemCloseBrackets" Command="{Binding IncreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
                 <MenuItem Header="_Decrease grid size" InputGesture="OemOpenBrackets" Command="{Binding DecreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
+                <Separator />
+                <MenuItem Header="Show _coordinates" Command="{Binding ToggleCoordinatesDisplay}" IsEnabled="{Binding HasOpenProject}"
+                          ToggleType="CheckBox" IsChecked="{Binding IsCoordinatesVisible}" />
             </MenuItem>
             <!--<MenuItem Header="Help">
                 <MenuItem Header="About" />
