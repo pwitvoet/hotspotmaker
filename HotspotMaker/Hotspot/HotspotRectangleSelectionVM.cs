@@ -247,6 +247,8 @@ namespace HotspotMaker.Hotspot
 
         private void Rectangles_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
+            StopOngoingAction();
+
             UpdateMultiProperties();
 
             var deselectedRectangles = e.OldItems?.OfType<HotspotRectangleVM>().ToArray() ?? Array.Empty<HotspotRectangleVM>();
