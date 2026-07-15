@@ -4,6 +4,7 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
 using HotspotMaker.Hotspot;
+using MLib.Texturing.Hotspotting;
 using System;
 using System.ComponentModel;
 using System.Globalization;
@@ -118,11 +119,24 @@ public partial class HotspotEditorView : UserControl
     private Brush BackgroundBrush { get; } = new SolidColorBrush(0xFF404040);
     private Pen GridPen { get; } = new Pen(0x20FFFFFF);
 
-    private Brush RectangleBrush { get; } = new SolidColorBrush(0x60F0F0FF);
+    private Brush RectangleBrush { get; } = new SolidColorBrush(0x40F0F0FF);
     private Pen RectangleBorderPen { get; } = new Pen(0xFFFFFFFF, 2);
+    private Pen RectangleDashedBorderPen { get; } = new Pen(0xFFFFFFFF, 2, DashStyle.Dash);
+    private Pen RectangleSnapLinePen { get; } = new Pen(0xC0FFE000, 2, DashStyle.Dash);
 
-    private Brush SelectedRectangleBrush { get; } = new SolidColorBrush(0x60FFF0F0);
+    private Brush TilingRectangleTopBrush { get; } = MakeLinearGradientBrush(new Point(0, 1), new Point(0, 0), 0x40F0F0FF, 0x00F0F0FF);
+    private Brush TilingRectangleBottomBrush { get; } = MakeLinearGradientBrush(new Point(0, 0), new Point(0, 1), 0x40F0F0FF, 0x00F0F0FF);
+    private Brush TilingRectangleLeftBrush { get; } = MakeLinearGradientBrush(new Point(1, 0), new Point(0, 0), 0x40F0F0FF, 0x00F0F0FF);
+    private Brush TilingRectangleRightBrush { get; } = MakeLinearGradientBrush(new Point(0, 0), new Point(1, 0), 0x40F0F0FF, 0x00F0F0FF);
+
+    private Brush SelectedRectangleBrush { get; } = new SolidColorBrush(0x40FFF0F0);
     private Pen SelectedRectangleBorderPen { get; } = new Pen(0xFFFF0000, 2);
+    private Pen SelectedRectangleDashedBorderPen { get; } = new Pen(0xFFFF0000, 2, DashStyle.Dash);
+
+    private Brush SelectedTilingRectangleTopBrush { get; } = MakeLinearGradientBrush(new Point(0, 1), new Point(0, 0), 0x40FFF0F0, 0x00FFF0F0);
+    private Brush SelectedTilingRectangleBottomBrush { get; } = MakeLinearGradientBrush(new Point(0, 0), new Point(0, 1), 0x40FFF0F0, 0x00FFF0F0);
+    private Brush SelectedTilingRectangleLeftBrush { get; } = MakeLinearGradientBrush(new Point(1, 0), new Point(0, 0), 0x40FFF0F0, 0x00FFF0F0);
+    private Brush SelectedTilingRectangleRightBrush { get; } = MakeLinearGradientBrush(new Point(0, 0), new Point(1, 0), 0x40FFF0F0, 0x00FFF0F0);
 
     private Brush SelectionAreaBrush { get; } = new SolidColorBrush(0x40FFFFFF);
     private Pen SelectionAreaBorderPen { get; } = new Pen(0x808080FF);
@@ -277,24 +291,7 @@ public partial class HotspotEditorView : UserControl
 
 
         foreach (var rectangle in rectangleSet.Rectangles)
-        {
-            var isSelected = editor.Selection.IsSelected(rectangle);
-            context.FillRectangle(
-                isSelected ? SelectedRectangleBrush : RectangleBrush,
-                new Rect(
-                    CameraOffset.X + (rectangle.X * CameraScale),
-                    CameraOffset.Y + (rectangle.Y * CameraScale),
-                    rectangle.Width * CameraScale,
-                    rectangle.Height * CameraScale));
-
-            context.DrawRectangle(
-                RectangleBorderPen,
-                new Rect(
-                    CameraOffset.X + (rectangle.X * CameraScale),
-                    CameraOffset.Y + (rectangle.Y * CameraScale),
-                    rectangle.Width * CameraScale,
-                    rectangle.Height * CameraScale));
-        }
+            DrawHotspotRectangle(context, editor, rectangle);
 
         var selectedRectangles = editor.Selection.Rectangles;
         if (selectedRectangles.Any())
@@ -309,6 +306,65 @@ public partial class HotspotEditorView : UserControl
                         selectedRectangle.Width * CameraScale,
                         selectedRectangle.Height * CameraScale));
             }
+        }
+    }
+
+    private void DrawHotspotRectangle(DrawingContext context, HotspotEditorVM editor, HotspotRectangleVM rectangle)
+    {
+        var topLeft = TextureToScreenCoordinate(new Point(rectangle.X, rectangle.Y));
+        var bottomRight = TextureToScreenCoordinate(new Point(rectangle.X + rectangle.Width, rectangle.Y + rectangle.Height));
+        var tileExtent = 32 * CameraScale;
+
+
+        // Rectangle background:
+        var isSelected = editor.Selection.IsSelected(rectangle);
+        context.FillRectangle(
+            isSelected ? SelectedRectangleBrush : RectangleBrush,
+            new Rect(topLeft, bottomRight));
+
+
+        // Snap lines:
+        if (rectangle.SnapWidth != null)
+        {
+            for (var x = rectangle.X + rectangle.SnapWidth.Value; x < rectangle.X + rectangle.Width; x += rectangle.SnapWidth.Value)
+                context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(x, rectangle.Y)), TextureToScreenCoordinate(new Point(x, rectangle.Y + rectangle.Height)));
+        }
+
+        if (rectangle.SnapHeight != null)
+        {
+            for (var y = rectangle.Y + rectangle.SnapHeight.Value; y < rectangle.Y + rectangle.Height; y += rectangle.SnapHeight.Value)
+                context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(rectangle.X, y)), TextureToScreenCoordinate(new Point(rectangle.X + rectangle.Width, y)));
+        }
+
+
+        // Rectangle edges:
+        var borderPen = isSelected ? SelectedRectangleBorderPen : RectangleBorderPen;
+        if (rectangle.HorizontalLayout == HotspotLayout.Tile)
+        {
+            context.FillRectangle(isSelected ? SelectedTilingRectangleLeftBrush : TilingRectangleLeftBrush, new Rect(topLeft.WithX(topLeft.X - tileExtent), topLeft.WithY(bottomRight.Y)));
+            context.FillRectangle(isSelected ? SelectedTilingRectangleRightBrush : TilingRectangleRightBrush, new Rect(topLeft.WithX(bottomRight.X), bottomRight.WithX(bottomRight.X + tileExtent)));
+
+            context.DrawLine(isSelected ? SelectedRectangleDashedBorderPen : RectangleDashedBorderPen, topLeft, topLeft.WithY(bottomRight.Y));
+            context.DrawLine(isSelected ? SelectedRectangleDashedBorderPen : RectangleDashedBorderPen, topLeft.WithX(bottomRight.X), bottomRight);
+        }
+        else
+        {
+            context.DrawLine(borderPen, topLeft, topLeft.WithY(bottomRight.Y));
+            context.DrawLine(borderPen, topLeft.WithX(bottomRight.X), bottomRight);
+        }
+
+        if (rectangle.VerticalLayout == HotspotLayout.Tile)
+        {
+            context.FillRectangle(isSelected ? SelectedTilingRectangleTopBrush : TilingRectangleTopBrush, new Rect(topLeft.WithY(topLeft.Y - tileExtent), topLeft.WithX(bottomRight.X)));
+            context.FillRectangle(isSelected ? SelectedTilingRectangleBottomBrush : TilingRectangleBottomBrush, new Rect(topLeft.WithY(bottomRight.Y), bottomRight.WithY(bottomRight.Y + tileExtent)));
+
+            context.DrawLine(isSelected ? SelectedRectangleDashedBorderPen : RectangleDashedBorderPen, topLeft, topLeft.WithX(bottomRight.X));
+            context.DrawLine(isSelected ? SelectedRectangleDashedBorderPen : RectangleDashedBorderPen, topLeft.WithY(bottomRight.Y), bottomRight);
+        }
+        else
+        {
+            context.DrawLine(borderPen, topLeft, topLeft.WithX(bottomRight.X));
+            context.DrawLine(borderPen, topLeft.WithY(bottomRight.Y), bottomRight);
         }
     }
 
@@ -780,5 +836,17 @@ public partial class HotspotEditorView : UserControl
         var height = Math.Max(p1.Y, p2.Y) - y;
 
         return new Rect(x, y, width, height);
+    }
+
+    private static Brush MakeLinearGradientBrush(Point startPoint, Point endPoint, uint startColor, uint endColor)
+    {
+        return new LinearGradientBrush {
+            StartPoint = new RelativePoint(startPoint, RelativeUnit.Relative),
+            EndPoint = new RelativePoint(endPoint, RelativeUnit.Relative),
+            GradientStops = [
+                new GradientStop(Color.FromUInt32(startColor), 0),
+                new GradientStop(Color.FromUInt32(endColor), 1),
+            ],
+        };
     }
 }
