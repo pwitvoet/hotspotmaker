@@ -227,6 +227,10 @@ public partial class HotspotEditorView : UserControl
         {
             switch (e.Key)
             {
+                case Key.Delete:
+                    editor.DeleteSelectedRectangles();
+                    break;
+
                 // Hotkeys for quickly adjusting certain rectangle properties:
                 case Key.R: editor.Selection.AllowRotation.Value = !(editor.Selection.AllowRotation.Value ?? true); break;
                 case Key.H: editor.Selection.AllowHorizontalMirroring.Value = !(editor.Selection.AllowHorizontalMirroring.Value ?? true); break;
@@ -578,12 +582,7 @@ public partial class HotspotEditorView : UserControl
         var selectedRectangles = editor.Selection.Rectangles;
         if (selectedRectangles.Any())
         {
-            if (e.Key == Key.Delete)
-            {
-                editor.DeleteSelectedRectangles();
-                e.Handled = true;
-            }
-            else if (!KeyModifiers.HasFlag(KeyModifiers.Control) && (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right))
+            if (!KeyModifiers.HasFlag(KeyModifiers.Control) && (e.Key == Key.Up || e.Key == Key.Down || e.Key == Key.Left || e.Key == Key.Right))
             {
                 var distance = IsGridEnabled ? GridSize : 1;
                 var movement = new Vector(0, 0);

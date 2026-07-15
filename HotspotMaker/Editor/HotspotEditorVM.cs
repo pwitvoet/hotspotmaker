@@ -444,7 +444,9 @@ namespace HotspotMaker.Editor
             if (rectangleSet == null)
                 return;
 
-            var selectedRectangles = Selection.Rectangles.ToArray();
+            var selectedRectangles = Selection.Rectangles
+                .OrderBy(rectangleSet.Rectangles.IndexOf)
+                .ToArray();
             var originalIndices = selectedRectangles
                 .Select(rectangleSet.Rectangles.IndexOf)
                 .ToArray();
