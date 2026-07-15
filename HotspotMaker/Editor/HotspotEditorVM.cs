@@ -289,9 +289,7 @@ namespace HotspotMaker.Editor
 
         public void UpdateMoveRectanglesOperation(Point currentTextureCoordinate, double gridSize, bool snapToGrid)
         {
-            var offset = currentTextureCoordinate - CurrentOperationStartCoordinate;
-            if (snapToGrid)
-                offset = GetSnappedCoordinate(offset, gridSize, snapToGrid);
+            var offset = GetSnappedCoordinate(currentTextureCoordinate - CurrentOperationStartCoordinate, gridSize, snapToGrid);
 
             var selectedRectangles = CurrentOperationRectangles;
             var originalPositions = CurrentOperationOriginalPositions;
