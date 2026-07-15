@@ -45,6 +45,8 @@
                 <Separator />
                 <MenuItem Header="Show _coordinates" Command="{Binding ToggleCoordinatesDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsCoordinatesVisible}" />
+                <MenuItem Header="Show ic_ons" Command="{Binding ToggleIconsDisplay}" IsEnabled="{Binding HasOpenProject}"
+                          ToggleType="CheckBox" IsChecked="{Binding IsIconsVisible}" />
             </MenuItem>
             <!--<MenuItem Header="Help">
                 <MenuItem Header="About" />

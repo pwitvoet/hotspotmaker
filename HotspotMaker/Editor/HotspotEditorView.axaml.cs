@@ -3,6 +3,8 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using HotspotMaker.Hotspot;
 using MLib.Texturing.Hotspotting;
 using System;
@@ -57,6 +59,12 @@ public partial class HotspotEditorView : UserControl
         (o, v) => o.IsCoordinatesVisible = v,
         defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly DirectProperty<HotspotEditorView, bool> IsIconsVisibleProperty = AvaloniaProperty.RegisterDirect<HotspotEditorView, bool>(
+        nameof(IsIconsVisible),
+        o => o.IsIconsVisible,
+        (o, v) => o.IsIconsVisible = v,
+        defaultBindingMode: BindingMode.TwoWay);
+
 
     public event Action<HotspotRectangleVM>? RectangleClicked;
 
@@ -97,6 +105,13 @@ public partial class HotspotEditorView : UserControl
     {
         get => _isCoordinatesVisible;
         set { SetAndRaise(IsCoordinatesVisibleProperty, ref _isCoordinatesVisible, value); InvalidateVisual(); }
+    }
+
+    private bool _isIconsVisible = true;
+    private bool IsIconsVisible
+    {
+        get => _isIconsVisible;
+        set { SetAndRaise(IsIconsVisibleProperty, ref _isIconsVisible, value); InvalidateVisual(); }
     }
 
     private PointerButtons PointerState { get; set; }
@@ -141,6 +156,11 @@ public partial class HotspotEditorView : UserControl
     private Brush SelectionAreaBrush { get; } = new SolidColorBrush(0x40FFFFFF);
     private Pen SelectionAreaBorderPen { get; } = new Pen(0x808080FF);
 
+    private Bitmap RotateIconBitmap { get; }
+    private Bitmap MirrorHorizontalIconBitmap { get; }
+    private Bitmap MirrorVerticalIconBitmap { get; }
+    private Bitmap MirrorHorizontalVerticalIconBitmap { get; }
+
 
     public HotspotEditorView()
     {
@@ -148,6 +168,11 @@ public partial class HotspotEditorView : UserControl
 
         // We want nice crispy pixels when zooming in:
         RenderOptions.SetBitmapInterpolationMode(this, Avalonia.Media.Imaging.BitmapInterpolationMode.None);
+
+        RotateIconBitmap = new Bitmap(AssetLoader.Open(new Uri("avares://HotspotMaker/Assets/Images/icon_rotate.png")));
+        MirrorHorizontalIconBitmap = new Bitmap(AssetLoader.Open(new Uri("avares://HotspotMaker/Assets/Images/icon_mirror_h.png")));
+        MirrorVerticalIconBitmap = new Bitmap(AssetLoader.Open(new Uri("avares://HotspotMaker/Assets/Images/icon_mirror_v.png")));
+        MirrorHorizontalVerticalIconBitmap = new Bitmap(AssetLoader.Open(new Uri("avares://HotspotMaker/Assets/Images/icon_mirror_hv.png")));
     }
 
 
@@ -324,16 +349,19 @@ public partial class HotspotEditorView : UserControl
 
 
         // Snap lines:
-        if (rectangle.SnapWidth != null)
+        if (IsIconsVisible)
         {
-            for (var x = rectangle.X + rectangle.SnapWidth.Value; x < rectangle.X + rectangle.Width; x += rectangle.SnapWidth.Value)
-                context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(x, rectangle.Y)), TextureToScreenCoordinate(new Point(x, rectangle.Y + rectangle.Height)));
-        }
+            if (rectangle.SnapWidth != null && rectangle.SnapWidth >= 1)
+            {
+                for (var x = rectangle.X + rectangle.SnapWidth.Value; x < rectangle.X + rectangle.Width; x += rectangle.SnapWidth.Value)
+                    context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(x, rectangle.Y)), TextureToScreenCoordinate(new Point(x, rectangle.Y + rectangle.Height)));
+            }
 
-        if (rectangle.SnapHeight != null)
-        {
-            for (var y = rectangle.Y + rectangle.SnapHeight.Value; y < rectangle.Y + rectangle.Height; y += rectangle.SnapHeight.Value)
-                context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(rectangle.X, y)), TextureToScreenCoordinate(new Point(rectangle.X + rectangle.Width, y)));
+            if (rectangle.SnapHeight != null && rectangle.SnapHeight >= 1)
+            {
+                for (var y = rectangle.Y + rectangle.SnapHeight.Value; y < rectangle.Y + rectangle.Height; y += rectangle.SnapHeight.Value)
+                    context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(rectangle.X, y)), TextureToScreenCoordinate(new Point(rectangle.X + rectangle.Width, y)));
+            }
         }
 
 
@@ -365,6 +393,29 @@ public partial class HotspotEditorView : UserControl
         {
             context.DrawLine(borderPen, topLeft, topLeft.WithX(bottomRight.X));
             context.DrawLine(borderPen, topLeft.WithY(bottomRight.Y), bottomRight);
+        }
+
+
+        // Property icons:
+        if (IsIconsVisible && CameraScale >= 0.5)
+        {
+            var drawPosition = new Point(topLeft.X + 1, topLeft.Y + 1);
+
+            if (rectangle.AllowRotation)
+            {
+                context.DrawImage(RotateIconBitmap, new Rect(drawPosition, RotateIconBitmap.Size));
+                drawPosition = new Point(drawPosition.X + RotateIconBitmap.Size.Width + 1, drawPosition.Y);
+            }
+
+            var mirrorIcon = (rectangle.AllowHorizontalMirroring && rectangle.AllowVerticalMirroring) ? MirrorHorizontalVerticalIconBitmap :
+                                                                   rectangle.AllowHorizontalMirroring ? MirrorHorizontalIconBitmap :
+                                                                     rectangle.AllowVerticalMirroring ? MirrorVerticalIconBitmap :
+                                                                                                        null;
+            if (mirrorIcon != null)
+            {
+                context.DrawImage(mirrorIcon, new Rect(drawPosition, mirrorIcon.Size));
+                drawPosition = new Point(drawPosition.X + mirrorIcon.Size.Width + 1, drawPosition.Y);
+            }
         }
     }
 

@@ -66,6 +66,7 @@ namespace HotspotMaker
                 RaisePropertyChanged(nameof(IsPasteAvailable));
                 RaisePropertyChanged(nameof(IsGridEnabled));
                 RaisePropertyChanged(nameof(IsCoordinatesVisible));
+                RaisePropertyChanged(nameof(IsIconsVisible));
                 RaisePropertyChanged();
             }
         }
@@ -87,6 +88,8 @@ namespace HotspotMaker
         public bool IsGridEnabled => HotspotProject?.HotspotEditor.IsGridEnabled == true;
 
         public bool IsCoordinatesVisible => HotspotProject?.HotspotEditor.IsCoordinatesVisible == true;
+
+        public bool IsIconsVisible => HotspotProject?.HotspotEditor.IsIconsVisible == true;
 
 
         private IStorageProvider StorageProvider { get; }
@@ -292,6 +295,14 @@ namespace HotspotMaker
                 return;
 
             HotspotProject.HotspotEditor.ToggleCoordinatesDisplay();
+        }
+
+        public void ToggleIconsDisplay()
+        {
+            if (HotspotProject == null)
+                return;
+
+            HotspotProject.HotspotEditor.ToggleIconsDisplay();
         }
 
 

@@ -9,6 +9,12 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <AvaloniaResource Include="Assets\Images\icon_mirror_h.png" />
+    <AvaloniaResource Include="Assets\Images\icon_mirror_hv.png" />
+    <AvaloniaResource Include="Assets\Images\icon_mirror_v.png" />
+    <AvaloniaResource Include="Assets\Images\icon_rotate.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="icon.ico" />
   </ItemGroup>
 

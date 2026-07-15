@@ -81,11 +81,18 @@ namespace HotspotMaker.Editor
             set { _gridSize = value; RaisePropertyChanged(); }
         }
 
-        private bool _showCoordinates = true;
+        private bool _isCoordinatesVisible = true;
         public bool IsCoordinatesVisible
         {
-            get => _showCoordinates;
-            set { _showCoordinates = value; RaisePropertyChanged(); }
+            get => _isCoordinatesVisible;
+            set { _isCoordinatesVisible = value; RaisePropertyChanged(); }
+        }
+
+        private bool _isIconsVisible = true;
+        public bool IsIconsVisible
+        {
+            get => _isIconsVisible;
+            set { _isIconsVisible = value; RaisePropertyChanged(); }
         }
 
 
@@ -219,6 +226,8 @@ namespace HotspotMaker.Editor
         }
 
         public void ToggleCoordinatesDisplay() => IsCoordinatesVisible = !IsCoordinatesVisible;
+
+        public void ToggleIconsDisplay() => IsIconsVisible = !IsIconsVisible;
 
 
         public void StartDuplicateRectanglesOperation(Point startTextureCoordinate, double gridSize, bool snapToGrid)
