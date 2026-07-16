@@ -164,9 +164,13 @@ namespace HotspotMaker.Hotspot
             HotspotEditor = new HotspotEditorVM(UndoSystem, Selection, clipboard);
             HotspotEditor.PropertyChanged += HotspotEditor_PropertyChanged;
 
+            foreach (var rectangleSet in hotspotFileData.RectangleSets)
+                HotspotRectangleSets.Add(new HotspotRectangleSetVM(rectangleSet, UndoSystem));
+
             foreach (var binding in hotspotFileData.Bindings)
             {
-                var bindingVM = new HotspotBindingVM(binding, UndoSystem);
+                var hotspotRectangleSetVM = GetHotspotRectangleSet(binding.HotspotName);
+                var bindingVM = new HotspotBindingVM(binding, hotspotRectangleSetVM, UndoSystem);
                 HotspotBindings.Add(bindingVM);
 
                 // Register binding lookup:
@@ -181,9 +185,6 @@ namespace HotspotMaker.Hotspot
                     WildcardHotspotBindings.Add((regex, bindingVM));
                 }
             }
-
-            foreach (var rectangleSet in hotspotFileData.RectangleSets)
-                HotspotRectangleSets.Add(new HotspotRectangleSetVM(rectangleSet, UndoSystem));
 
             // Initialize texture infos:
             TextureInfos = wadFile.TextureInfos
@@ -238,10 +239,10 @@ namespace HotspotMaker.Hotspot
                 hotspotSetName = $"{textureInfo.Name}_hotspots_{counter++}";
 
             var newHotspotRectangleSet = new HotspotRectangleSetVM(hotspotSetName, UndoSystem);
-            var newHotspotBinding = new HotspotBindingVM(textureInfo.Name, newHotspotRectangleSet.Name, UndoSystem);
+            var newHotspotBinding = new HotspotBindingVM(textureInfo.Name, newHotspotRectangleSet, UndoSystem);
 
             var oldHotspotBinding = textureInfo.Binding;
-            var oldHotspotRectangleSet = GetHotspotRectangleSet(oldHotspotBinding?.HotspotName);
+            var oldHotspotRectangleSet = oldHotspotBinding?.HotspotRectangleSet;
 
             PerformUndoableAction(
                 () =>
@@ -344,7 +345,14 @@ namespace HotspotMaker.Hotspot
         private void BindingVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(HotspotBindingVM.IsModified))
+            {
                 RaisePropertyChanged(nameof(IsModified));
+            }
+            else if (e.PropertyName == nameof(HotspotBindingVM.HotspotRectangleSet))
+            {
+                if (sender == SelectedHotspotBinding)
+                    SelectedHotspotRectangleSet = SelectedHotspotBinding?.HotspotRectangleSet;
+            }
         }
 
         private void RectangleSetVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -367,7 +375,7 @@ namespace HotspotMaker.Hotspot
                 var texture = WadFile.LoadTexture(textureItem.TextureInfo);
                 SelectedTextureImage = CreateBitmapFromTexture(texture);
                 SelectedHotspotBinding = textureItem.Binding;
-                SelectedHotspotRectangleSet = GetHotspotRectangleSet(textureItem.Binding?.HotspotName);
+                SelectedHotspotRectangleSet = textureItem.Binding?.HotspotRectangleSet;
             }
         }
 

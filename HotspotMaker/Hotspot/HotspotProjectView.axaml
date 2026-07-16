@@ -58,7 +58,7 @@
                         Opacity="{Binding HasSelectedHotspotBinding, Converter={StaticResource TrueToOneConverter}}"
                         IsHitTestVisible="{Binding HasSelectedHotspotBinding}" IsEnabled="{Binding HasSelectedHotspotBinding}">
                     <StackPanel Orientation="Vertical" DataContext="{Binding SelectedHotspotBinding}" Margin="5">
-                        <TextBlock Text="Hotspot binding" FontWeight="Bold" Margin="5" />
+                        <TextBlock Text="Hotspot data" FontWeight="Bold" Margin="5" />
 
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="Texture name pattern:" VerticalAlignment="Center" Margin="5" />
@@ -67,8 +67,9 @@
 
                             <TextBlock Text="Hotspot set:" VerticalAlignment="Center" Margin="5" />
                             <!-- TODO: Dropdown box! And button to create a new rectangle set! -->
-                            <TextBox Text="{Binding HotspotName}" MinWidth="150" Margin="5"
-                                     LostFocus="TextBox_LostFocus" />
+                            <ComboBox ItemsSource="{Binding $parent[Border].DataContext.HotspotRectangleSets}" SelectedItem="{Binding HotspotRectangleSet}"
+                                      DisplayMemberBinding="{Binding Name}"
+                                      VerticalAlignment="Center" MinWidth="150" Margin="5" />
                         </StackPanel>
 
                         <StackPanel Orientation="Horizontal">
@@ -92,9 +93,14 @@
                 <!-- No binding selected: -->
                 <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !HasSelectedHotspotBinding, Converter={StaticResource TrueToOneConverter}}"
                         IsHitTestVisible="{Binding !HasSelectedHotspotBinding}" IsEnabled="{Binding !HasSelectedHotspotBinding}">
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Left" Margin="5">
-                        <Button Content="Create new hotspot set" Command="{Binding LinkToNewHotspotSet}" Margin="5" />
-                        <!--<Button Content="Link to existing hotspot set" Command="{Binding LinkToExistingHotspotSet}" Margin="5" />-->
+                    <StackPanel Orientation="Vertical" Margin="5">
+                        <TextBlock Text="Hotspot data" FontWeight="Bold" Margin="5" />
+
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
+                            <Button Content="Link to new rectangle set" Command="{Binding LinkToNewHotspotSet}" Margin="5" />
+                            <!--<Button Content="Link to existing rectangle set" Command="{Binding LinkToExistingHotspotSet}" Margin="5" />
+                            <Button Content="Create a link for multiple textures" Command="{Binding LinkMultipleTexturesToHotspotSet}" Margin="5" />-->
+                        </StackPanel>
                     </StackPanel>
                 </Border>
             </Grid>

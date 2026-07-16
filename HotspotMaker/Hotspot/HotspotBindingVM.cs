@@ -14,11 +14,11 @@ namespace HotspotMaker.Hotspot
             set => SetPropertyOngoing(v => _textureNamePattern = v, _textureNamePattern, value);
         }
 
-        private string _hotspotName = "";
-        public string HotspotName
+        private HotspotRectangleSetVM? _hotspotRectangleSet;
+        public HotspotRectangleSetVM? HotspotRectangleSet
         {
-            get => _hotspotName;
-            set => SetPropertyOngoing(v => _hotspotName = v, _hotspotName, value);
+            get => _hotspotRectangleSet;
+            set => SetProperty(v => _hotspotRectangleSet = v, _hotspotRectangleSet, value);
         }
 
         private string? _fallbackTextureNamePattern;
@@ -43,23 +43,23 @@ namespace HotspotMaker.Hotspot
         }
 
 
-        public HotspotBindingVM(string textureNamePattern, string hotspotName, UndoSystem undoSystem)
+        public HotspotBindingVM(string textureNamePattern, HotspotRectangleSetVM? hotspotRectangleSet, UndoSystem undoSystem)
             : base(undoSystem)
         {
             WithoutChangeTracking(() =>
             {
                 TextureNamePattern = textureNamePattern;
-                HotspotName = hotspotName;
+                HotspotRectangleSet = hotspotRectangleSet;
             });
         }
 
-        public HotspotBindingVM(HotspotBinding binding, UndoSystem undoSystem)
+        public HotspotBindingVM(HotspotBinding binding, HotspotRectangleSetVM? hotspotRectangleSet, UndoSystem undoSystem)
             : base(undoSystem)
         {
             WithoutChangeTracking(() =>
             {
                 TextureNamePattern = binding.TextureNamePattern;
-                HotspotName = binding.HotspotName;
+                HotspotRectangleSet = hotspotRectangleSet;
 
                 FallbackTextureNamePattern = binding.FallbackTextureNamePattern;
                 FallbackScoreThreshold = binding.FallbackScoreThreshold;
@@ -72,7 +72,7 @@ namespace HotspotMaker.Hotspot
         {
             return new HotspotBinding(
                 TextureNamePattern,
-                HotspotName,
+                HotspotRectangleSet?.Name ?? "",
                 FallbackTextureNamePattern,
                 FallbackScoreThreshold ?? 0,
                 Labels);
