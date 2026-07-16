@@ -192,6 +192,9 @@ namespace HotspotMaker.Hotspot
                 .OrderBy(entry => entry.Name)
                 .ToArray();
 
+            foreach (var textureInfo in TextureInfos)
+                textureInfo.PropertyChanged += TextureInfo_PropertyChanged;
+
             UndoSystem.OnActionDone += UndoSystem_OnActionDone;
             UndoSystem.OnActionUndone += UndoSystem_OnActionUndone;
             UndoSystem.OnActionRedone += UndoSystem_OnActionRedone;
@@ -249,25 +252,13 @@ namespace HotspotMaker.Hotspot
                 {
                     HotspotRectangleSets.Add(newHotspotRectangleSet);
                     HotspotBindings.Add(newHotspotBinding);
-
                     textureInfo.Binding = newHotspotBinding;
-                    if (textureInfo == SelectedTextureInfo)
-                    {
-                        SelectedHotspotBinding = newHotspotBinding;
-                        SelectedHotspotRectangleSet = newHotspotRectangleSet;
-                    }
                 },
                 () =>
                 {
-                    HotspotRectangleSets.Remove(newHotspotRectangleSet);
-                    HotspotBindings.Remove(newHotspotBinding);
-
                     textureInfo.Binding = oldHotspotBinding;
-                    if (textureInfo == SelectedTextureInfo)
-                    {
-                        SelectedHotspotBinding = oldHotspotBinding;
-                        SelectedHotspotRectangleSet = oldHotspotRectangleSet;
-                    }
+                    HotspotBindings.Remove(newHotspotBinding);
+                    HotspotRectangleSets.Remove(newHotspotRectangleSet);
                 });
         }
 
@@ -340,6 +331,18 @@ namespace HotspotMaker.Hotspot
             }
 
             RaisePropertyChanged(nameof(IsModified));
+        }
+
+        private void TextureInfo_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(TextureInfoVM.Binding))
+            {
+                if (sender == SelectedTextureInfo)
+                {
+                    SelectedHotspotBinding = SelectedTextureInfo?.Binding;
+                    SelectedHotspotRectangleSet = SelectedHotspotBinding?.HotspotRectangleSet;
+                }
+            }
         }
 
         private void BindingVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
