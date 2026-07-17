@@ -87,6 +87,10 @@
                             <controls:LabelsTextBox Labels="{Binding Labels}" MinWidth="200" Margin="5"
                                                     LostFocus="TextBox_LostFocus" />
                         </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="Unlink from rectangle set" Command="{Binding $parent[Border].DataContext.UnlinkTextureFromHotspotSet}" Margin="5" />
+                        </StackPanel>
                     </StackPanel>
                 </Border>
 

@@ -2,6 +2,7 @@
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using HotspotMaker.Controls;
 using HotspotMaker.Editor;
 using HotspotMaker.History;
 using MLib.Texturing;
@@ -15,6 +16,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace HotspotMaker.Hotspot
 {
@@ -259,6 +261,56 @@ namespace HotspotMaker.Hotspot
                     textureInfo.Binding = oldHotspotBinding;
                     HotspotBindings.Remove(newHotspotBinding);
                     HotspotRectangleSets.Remove(newHotspotRectangleSet);
+                });
+        }
+
+        public async Task UnlinkTextureFromHotspotSet()
+        {
+            var textureInfo = SelectedTextureInfo;
+            var oldHotspotBinding = textureInfo?.Binding;
+            if (textureInfo == null || oldHotspotBinding == null)
+                return;
+
+
+            var oldHotspotRectangleSet = oldHotspotBinding.HotspotRectangleSet;
+            var useCount = HotspotBindings.Where(binding => binding.HotspotRectangleSet == oldHotspotRectangleSet).Count();
+            var removeHotspotRectangleSet = false;
+            if (useCount == 1)
+            {
+                var result = await MessageBox.Show(
+                    "Unlink texture from rectangle set",
+                    "After unlinking, there are no other textures that use this rectangle set. Do you want to remove the rectangle set?",
+                    [
+                        "Unlink only",
+                        "Unlink and remove rectangle set",
+                        "Cancel",
+                    ]);
+
+                if (result != 0 && result != 1)
+                    return;
+
+                removeHotspotRectangleSet = result == 1;
+            }
+
+            var oldBindingIndex = HotspotBindings.IndexOf(oldHotspotBinding);
+            var oldRectangleSetIndex = oldHotspotRectangleSet == null ? 0 : HotspotRectangleSets.IndexOf(oldHotspotRectangleSet);
+
+            PerformUndoableAction(
+                () =>
+                {
+                    textureInfo.Binding = null;
+                    HotspotBindings.Remove(oldHotspotBinding);
+
+                    if (removeHotspotRectangleSet && oldHotspotRectangleSet != null)
+                        HotspotRectangleSets.Remove(oldHotspotRectangleSet);
+                },
+                () =>
+                {
+                    if (removeHotspotRectangleSet && oldHotspotRectangleSet != null)
+                        HotspotRectangleSets.Insert(oldRectangleSetIndex, oldHotspotRectangleSet);
+
+                    HotspotBindings.Insert(oldBindingIndex, oldHotspotBinding);
+                    textureInfo.Binding = oldHotspotBinding;
                 });
         }
 

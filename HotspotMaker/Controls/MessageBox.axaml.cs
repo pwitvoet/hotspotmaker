@@ -15,8 +15,11 @@ namespace HotspotMaker.Controls
 
         Ok =        0x01,
         Cancel =    0x02,
+        Yes =       0x04,
+        No =        0x08,
 
         OkCancel = Ok | Cancel,
+        YesNo = Yes | No,
     }
 
 
@@ -24,22 +27,40 @@ namespace HotspotMaker.Controls
     {
         public static async Task<bool?> Show(string title, string message, MessageBoxButtons buttons = MessageBoxButtons.OkCancel)
         {
-            var dialog = new MessageBox(title, message, buttons);
-
-            var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (mainWindow == null)
+            var messageBox = new MessageBox(title, message, buttons);
+            if (!await ShowMessageBox(messageBox))
                 return null;
 
-            dialog.Position = new PixelPoint(
-                mainWindow.Position.X + (int)((mainWindow.Width - dialog.Width) / 2),
-                mainWindow.Position.Y + (int)((mainWindow.Height - dialog.Height) / 2));
+            return messageBox.Result;
+        }
 
-            await dialog.ShowDialog(mainWindow);
-            return dialog.Result;
+        public static async Task<int?> Show(string title, string message, string[] customButtonLabels)
+        {
+            var messagBox = new MessageBox(title, message, customButtonLabels);
+            if (!await ShowMessageBox(messagBox))
+                return null;
+
+            return messagBox.ButtonIndex;
+        }
+
+
+        private static async Task<bool> ShowMessageBox(MessageBox messageBox)
+        {
+            var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+            if (mainWindow == null)
+                return false;
+
+            messageBox.Position = new PixelPoint(
+                mainWindow.Position.X + (int)((mainWindow.Width - messageBox.Width) / 2),
+                mainWindow.Position.Y + (int)((mainWindow.Height - messageBox.Height) / 2));
+
+            await messageBox.ShowDialog(mainWindow);
+            return true;
         }
 
 
         private bool? Result { get; set; }
+        private int? ButtonIndex { get; set; }
 
         public MessageBox(string title, string message, MessageBoxButtons buttons)
         {
@@ -48,10 +69,40 @@ namespace HotspotMaker.Controls
             Title = title;
             MessageTextBlock.Text = message;
 
-            OkButton.IsVisible = buttons.HasFlag(MessageBoxButtons.Ok);
-            CancelButton.IsVisible = buttons.HasFlag(MessageBoxButtons.Cancel);
+            OkButton.IsEnabled = buttons.HasFlag(MessageBoxButtons.Ok) || buttons.HasFlag(MessageBoxButtons.Yes);
+            OkButton.IsVisible = OkButton.IsEnabled;
+
+            CancelButton.IsEnabled = buttons.HasFlag(MessageBoxButtons.Cancel) || buttons.HasFlag(MessageBoxButtons.No);
+            CancelButton.IsVisible = CancelButton.IsEnabled;
+
+            if (buttons.HasFlag(MessageBoxButtons.Yes))
+                OkButton.Content = "Yes";
+
+            if (buttons.HasFlag(MessageBoxButtons.No))
+                CancelButton.Content = "No";
         }
 
+        public MessageBox(string title, string message, string[] customButtonLabels)
+            : this(title, message, MessageBoxButtons.None)
+        {
+            for (int i = 0; i < customButtonLabels.Length; i++)
+            {
+                var button = new Button {
+                    Content = customButtonLabels[i],
+                    Padding = OkButton.Padding,
+                    Margin = OkButton.Margin,
+                };
+
+                var index = i;
+                button.Click += (sender, e) =>
+                {
+                    ButtonIndex = index;
+                    Close();
+                };
+
+                ButtonsBar.Children.Add(button);
+            }
+        }
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
@@ -60,11 +111,16 @@ namespace HotspotMaker.Controls
             if (e.Key == Key.Enter && OkButton.IsVisible)
             {
                 Result = true;
+
+                // Only close if we have an Ok/Yes button:
                 Close();
             }
-            else if (e.Key == Key.Escape && CancelButton.IsVisible)
+            else if (e.Key == Key.Escape)
             {
-                Result = false;
+                if (CancelButton.IsVisible)
+                    Result = false;
+
+                // Always close on escape:
                 Close();
             }
         }
