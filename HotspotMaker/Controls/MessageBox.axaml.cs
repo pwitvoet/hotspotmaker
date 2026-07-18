@@ -43,6 +43,17 @@ namespace HotspotMaker.Controls
             return messagBox.ButtonIndex;
         }
 
+        public static async Task<int?> ShowComboBox(string title, string message, string[] options, MessageBoxButtons buttons = MessageBoxButtons.OkCancel)
+        {
+            var messageBox = new MessageBox(title, message, buttons);
+            messageBox.SetOptions(options);
+
+            if (!await ShowMessageBox(messageBox))
+                return null;
+
+            return messageBox.Result == true ? messageBox.OptionIndex : null;
+        }
+
 
         private static async Task<bool> ShowMessageBox(MessageBox messageBox)
         {
@@ -61,6 +72,8 @@ namespace HotspotMaker.Controls
 
         private bool? Result { get; set; }
         private int? ButtonIndex { get; set; }
+        private int? OptionIndex => OptionsComboBox.SelectedIndex;
+
 
         public MessageBox(string title, string message, MessageBoxButtons buttons)
         {
@@ -103,6 +116,16 @@ namespace HotspotMaker.Controls
                 ButtonsBar.Children.Add(button);
             }
         }
+
+        public void SetOptions(string[] options)
+        {
+            OptionsComboBox.IsEnabled = true;
+            OptionsComboBox.IsVisible = true;
+
+            OptionsComboBox.ItemsSource = options;
+            OptionsComboBox.SelectedIndex = 0;
+        }
+
 
         protected override void OnKeyDown(KeyEventArgs e)
         {

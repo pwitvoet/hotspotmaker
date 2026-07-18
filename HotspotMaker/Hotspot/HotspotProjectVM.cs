@@ -264,6 +264,39 @@ namespace HotspotMaker.Hotspot
                 });
         }
 
+        public async Task LinkToExistingHotspotSet()
+        {
+            var textureInfo = SelectedTextureInfo;
+            if (textureInfo == null)
+                return;
+
+
+            var result = await MessageBox.ShowComboBox(
+                "Link to existing rectangle set",
+                "Link this texture to the following rectangle set:",
+                HotspotRectangleSets.Select(rectangleSet => rectangleSet.Name).ToArray());
+            if (result == null)
+                return;
+
+            var hotspotRectangleSet = HotspotRectangleSets[result.Value];
+            var newHotspotBinding = new HotspotBindingVM(textureInfo.Name, hotspotRectangleSet, UndoSystem);
+
+            var oldHotspotBinding = textureInfo.Binding;
+            var oldHotspotRectangleSet = oldHotspotBinding?.HotspotRectangleSet;
+
+            PerformUndoableAction(
+                () =>
+                {
+                    HotspotBindings.Add(newHotspotBinding);
+                    textureInfo.Binding = newHotspotBinding;
+                },
+                () =>
+                {
+                    textureInfo.Binding = oldHotspotBinding;
+                    HotspotBindings.Remove(newHotspotBinding);
+                });
+        }
+
         public async Task UnlinkTextureFromHotspotSet()
         {
             var textureInfo = SelectedTextureInfo;

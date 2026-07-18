@@ -102,8 +102,8 @@
 
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
                             <Button Content="Link to new rectangle set" Command="{Binding LinkToNewHotspotSet}" Margin="5" />
-                            <!--<Button Content="Link to existing rectangle set" Command="{Binding LinkToExistingHotspotSet}" Margin="5" />
-                            <Button Content="Create a link for multiple textures" Command="{Binding LinkMultipleTexturesToHotspotSet}" Margin="5" />-->
+                            <Button Content="Link to existing rectangle set" Command="{Binding LinkToExistingHotspotSet}" Margin="5" />
+                            <!--<Button Content="Create a link for multiple textures" Command="{Binding LinkMultipleTexturesToHotspotSet}" Margin="5" />-->
                         </StackPanel>
                     </StackPanel>
                 </Border>
