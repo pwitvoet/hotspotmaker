@@ -7,13 +7,6 @@ namespace MLib.Texturing.Hotspotting
     /// </summary>
     public class HotspotDataCollection
     {
-        /// <summary>
-        /// Returns a regex for the given texture name pattern, but only if it contains any wildcards (*).
-        /// </summary>
-        public static Regex? GetTextureNamePatternRegex(string textureNamePattern)
-            => HasWildcards(textureNamePattern) ? MakeNamePatternRegex(textureNamePattern) : null;
-
-
         private Dictionary<string, HotspotRectangleSet> HotspotRectangleSets { get; } = new Dictionary<string, HotspotRectangleSet>(StringComparer.InvariantCultureIgnoreCase);
 
         private Dictionary<string, HotspotBinding> ExactHotspotBindings { get; } = new Dictionary<string, HotspotBinding>(StringComparer.InvariantCultureIgnoreCase);
@@ -31,14 +24,14 @@ namespace MLib.Texturing.Hotspotting
 
             foreach (var binding in hotspotFileData.Bindings)
             {
-                if (!HasWildcards(binding.TextureNamePattern))
+                if (!HotspotNameMatching.HasWildcards(binding.TextureNamePattern))
                 {
                     // TODO: Issue warning if a name is already taken!
                     ExactHotspotBindings[binding.TextureNamePattern] = binding;
                 }
                 else
                 {
-                    WildcardHotspotBindings.Add((MakeNamePatternRegex(binding.TextureNamePattern), binding));
+                    WildcardHotspotBindings.Add((HotspotNameMatching.MakeNamePatternRegex(binding.TextureNamePattern), binding));
                 }
             }
         }
@@ -54,14 +47,14 @@ namespace MLib.Texturing.Hotspotting
 
 
             var fallbackTextureName = binding.FallbackTextureNamePattern;
-            if (fallbackTextureName != null && ContainsPlaceholders(binding.TextureNamePattern) && nameMatch != null)
+            if (fallbackTextureName != null && HotspotNameMatching.ContainsPlaceholders(binding.TextureNamePattern) && nameMatch != null)
             {
                 var replacementValues = nameMatch.Groups.Cast<Group>()
                     .Skip(1)
                     .Select(group => group.Value)
                     .ToArray();
 
-                fallbackTextureName = ReplacePlaceholders(fallbackTextureName, replacementValues);
+                fallbackTextureName = HotspotNameMatching.ReplacePlaceholders(fallbackTextureName, replacementValues);
             }
             return new HotspotData(rectangleSet, binding, fallbackTextureName);
         }
@@ -86,38 +79,6 @@ namespace MLib.Texturing.Hotspotting
             }
 
             return null;
-        }
-
-        private static bool HasWildcards(string namePattern)
-            => Regex.IsMatch(namePattern, @"(?<!\\)\*");    // Matches * but not \*
-
-        private static Regex MakeNamePatternRegex(string namePattern)
-        {
-            var regex = Regex.Replace(namePattern, @"\\\*|\*|\\|[^\*\\]*", match =>
-            {
-                switch (match.Value)
-                {
-                    case @"*": return "(.*?)";                  // A wildcard can be anything (including empty)
-                    case @"\*": return Regex.Escape("*");       // A literal * must be escaped (\*)
-                    default: return Regex.Escape(match.Value);  // There are no other special characters
-                }
-            });
-            return new Regex("^" + regex + "$", RegexOptions.IgnoreCase);
-        }
-
-        private static bool ContainsPlaceholders(string fallbackTextureName)
-            => Regex.IsMatch(fallbackTextureName, @"\{\d+\}");
-
-        private static string ReplacePlaceholders(string value, string[] replacementValues)
-        {
-            return Regex.Replace(value, @"\{(\d+)\}", match =>
-            {
-                var index = int.Parse(match.Groups[1].Value);
-                if (index < 0 || index >= replacementValues.Length)
-                    return "";
-                else
-                    return replacementValues[index];
-            });
         }
     }
 }
