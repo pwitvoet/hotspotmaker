@@ -152,8 +152,8 @@ namespace HotspotMaker.Hotspot
                 Height = rectangle.Rectangle.Height;
 
                 AllowRotation = rectangle.AllowRotation;
-                AllowHorizontalMirroring = rectangle.AllowedMirroring == MLib.Texturing.Hotspotting.Mirrorings.Horizontal;
-                AllowVerticalMirroring = rectangle.AllowedMirroring == MLib.Texturing.Hotspotting.Mirrorings.Vertical;
+                AllowHorizontalMirroring = rectangle.AllowedMirroring.HasFlag(Mirrorings.Horizontal);
+                AllowVerticalMirroring = rectangle.AllowedMirroring.HasFlag(Mirrorings.Vertical);
 
                 HorizontalLayout = rectangle.HorizontalLayout;
                 VerticalLayout = rectangle.VerticalLayout;
@@ -161,10 +161,10 @@ namespace HotspotMaker.Hotspot
                 SnapHeight = rectangle.SnapHeight;
 
                 SelectionWeight = rectangle.SelectionWeight;
-                IsTopConcave = rectangle.ConcaveEdges.HasFlag(MLib.Texturing.Hotspotting.ConcaveEdges.Top);
-                IsRightConcave = rectangle.ConcaveEdges.HasFlag(MLib.Texturing.Hotspotting.ConcaveEdges.Right);
-                IsBottomConcave = rectangle.ConcaveEdges.HasFlag(MLib.Texturing.Hotspotting.ConcaveEdges.Bottom);
-                IsLeftConcave = rectangle.ConcaveEdges.HasFlag(MLib.Texturing.Hotspotting.ConcaveEdges.Left);
+                IsTopConcave = rectangle.ConcaveEdges.HasFlag(ConcaveEdges.Top);
+                IsRightConcave = rectangle.ConcaveEdges.HasFlag(ConcaveEdges.Right);
+                IsBottomConcave = rectangle.ConcaveEdges.HasFlag(ConcaveEdges.Bottom);
+                IsLeftConcave = rectangle.ConcaveEdges.HasFlag(ConcaveEdges.Left);
 
                 Labels= rectangle.Labels.ToArray();
             });
