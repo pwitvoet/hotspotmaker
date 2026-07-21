@@ -48,5 +48,8 @@
     <Compile Update="Hotspot\HotspotProjectView.axaml.cs">
       <DependentUpon>HotspotProjectView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Hotspot\Linking\MultiLinkWindow.axaml.cs">
+      <DependentUpon>MultiLinkWindow.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>
