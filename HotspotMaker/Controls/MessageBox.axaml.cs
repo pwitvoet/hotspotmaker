@@ -1,8 +1,7 @@
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using HotspotMaker.Util.UI;
 using System;
 using System.Threading.Tasks;
 
@@ -28,7 +27,7 @@ namespace HotspotMaker.Controls
         public static async Task<bool?> Show(string title, string message, MessageBoxButtons buttons = MessageBoxButtons.OkCancel)
         {
             var messageBox = new MessageBox(title, message, buttons);
-            if (!await ShowMessageBox(messageBox))
+            if (!await messageBox.ShowAsDialog())
                 return null;
 
             return messageBox.Result;
@@ -36,11 +35,11 @@ namespace HotspotMaker.Controls
 
         public static async Task<int?> Show(string title, string message, string[] customButtonLabels)
         {
-            var messagBox = new MessageBox(title, message, customButtonLabels);
-            if (!await ShowMessageBox(messagBox))
+            var messageBox = new MessageBox(title, message, customButtonLabels);
+            if (!await messageBox.ShowAsDialog())
                 return null;
 
-            return messagBox.ButtonIndex;
+            return messageBox.ButtonIndex;
         }
 
         public static async Task<int?> ShowComboBox(string title, string message, string[] options, MessageBoxButtons buttons = MessageBoxButtons.OkCancel)
@@ -48,25 +47,10 @@ namespace HotspotMaker.Controls
             var messageBox = new MessageBox(title, message, buttons);
             messageBox.SetOptions(options);
 
-            if (!await ShowMessageBox(messageBox))
+            if (!await messageBox.ShowAsDialog())
                 return null;
 
             return messageBox.Result == true ? messageBox.OptionIndex : null;
-        }
-
-
-        private static async Task<bool> ShowMessageBox(MessageBox messageBox)
-        {
-            var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-            if (mainWindow == null)
-                return false;
-
-            messageBox.Position = new PixelPoint(
-                mainWindow.Position.X + (int)((mainWindow.Width - messageBox.Width) / 2),
-                mainWindow.Position.Y + (int)((mainWindow.Height - messageBox.Height) / 2));
-
-            await messageBox.ShowDialog(mainWindow);
-            return true;
         }
 
 
