@@ -69,6 +69,7 @@ namespace HotspotMaker.Hotspot
 
                 RaisePropertyChanged();
                 RaisePropertyChanged(nameof(HasSelectedTextureInfo));
+                RaisePropertyChanged(nameof(HasSelectedTextureWithoutHotspot));
 
                 OnSelectedTextureUpdate(value);
             }
@@ -95,6 +96,7 @@ namespace HotspotMaker.Hotspot
             {
                 _selectedHotspotBinding = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(HasSelectedTextureWithoutHotspot));
                 RaisePropertyChanged(nameof(HasSelectedHotspotBinding));
             }
         }
@@ -124,6 +126,8 @@ namespace HotspotMaker.Hotspot
         public TextureInfoVM[] TextureInfos { get; }
 
         public bool HasSelectedTextureInfo => SelectedTextureInfo != null;
+
+        public bool HasSelectedTextureWithoutHotspot => SelectedTextureInfo != null && SelectedHotspotBinding == null;
 
         public bool HasSelectedHotspotBinding => SelectedHotspotBinding != null;
 

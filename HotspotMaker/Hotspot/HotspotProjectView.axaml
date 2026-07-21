@@ -95,8 +95,8 @@
                 </Border>
 
                 <!-- No binding selected: -->
-                <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !HasSelectedHotspotBinding, Converter={StaticResource TrueToOneConverter}}"
-                        IsHitTestVisible="{Binding !HasSelectedHotspotBinding}" IsEnabled="{Binding !HasSelectedHotspotBinding}">
+                <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding HasSelectedTextureWithoutHotspot, Converter={StaticResource TrueToOneConverter}}"
+                        IsHitTestVisible="{Binding HasSelectedTextureWithoutHotspot}" IsEnabled="{Binding HasSelectedTextureWithoutHotspot}">
                     <StackPanel Orientation="Vertical" Margin="5">
                         <TextBlock Text="Hotspot data" FontWeight="Bold" Margin="5" />
 
@@ -106,6 +106,12 @@
                             <!--<Button Content="Create a link for multiple textures" Command="{Binding LinkMultipleTexturesToHotspotSet}" Margin="5" />-->
                         </StackPanel>
                     </StackPanel>
+                </Border>
+
+                <!-- No texture selected: -->
+                <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !HasSelectedTextureInfo, Converter={StaticResource TrueToOneConverter}}"
+                        IsHitTestVisible="{Binding !HasSelectedTextureInfo}" IsEnabled="{Binding !HasSelectedTextureInfo}">
+                    <TextBlock Text="No texture selected." HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5" />
                 </Border>
             </Grid>
 
