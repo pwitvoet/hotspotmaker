@@ -139,6 +139,7 @@ public partial class HotspotEditorView : UserControl
     private Pen RectangleDashedBorderPen { get; } = new Pen(0xFFFFFFFF, 2, DashStyle.Dash);
     private Pen RectangleSnapLinePen { get; } = new Pen(0xC0FFE000, 2, DashStyle.Dash);
     private Pen RectangleConcaveEdgePen { get; } = new Pen(0xFF0040C0, 2);
+    private Pen RectangleClipEdgePen { get; } = new Pen(0xC0FFE000, 2);
 
     private Brush TilingRectangleTopBrush { get; } = MakeLinearGradientBrush(new Point(0, 1), new Point(0, 0), 0x40F0F0FF, 0x00F0F0FF);
     private Brush TilingRectangleBottomBrush { get; } = MakeLinearGradientBrush(new Point(0, 0), new Point(0, 1), 0x40F0F0FF, 0x00F0F0FF);
@@ -406,6 +407,15 @@ public partial class HotspotEditorView : UserControl
         {
             context.DrawLine(borderPen, topLeft, topLeft.WithY(bottomRight.Y));
             context.DrawLine(borderPen, topLeft.WithX(bottomRight.X), bottomRight);
+
+            if (rectangle.HorizontalLayout == HotspotLayout.Clip)
+            {
+                context.DrawLine(RectangleClipEdgePen, new Point(topLeft.X + 4, topLeft.Y + 4), new Point(topLeft.X + 4, bottomRight.Y - 4));
+                context.DrawLine(RectangleClipEdgePen, new Point(topLeft.X + 7, topLeft.Y + 7), new Point(topLeft.X + 7, bottomRight.Y - 7));
+
+                context.DrawLine(RectangleClipEdgePen, new Point(bottomRight.X - 4, topLeft.Y + 4), new Point(bottomRight.X - 4, bottomRight.Y - 4));
+                context.DrawLine(RectangleClipEdgePen, new Point(bottomRight.X - 7, topLeft.Y + 7), new Point(bottomRight.X - 7, bottomRight.Y - 7));
+            }
         }
 
         if (rectangle.VerticalLayout == HotspotLayout.Tile)
@@ -420,6 +430,15 @@ public partial class HotspotEditorView : UserControl
         {
             context.DrawLine(borderPen, topLeft, topLeft.WithX(bottomRight.X));
             context.DrawLine(borderPen, topLeft.WithY(bottomRight.Y), bottomRight);
+
+            if (rectangle.VerticalLayout == HotspotLayout.Clip)
+            {
+                context.DrawLine(RectangleClipEdgePen, new Point(topLeft.X + 4, topLeft.Y + 4), new Point(bottomRight.X - 4, topLeft.Y + 4));
+                context.DrawLine(RectangleClipEdgePen, new Point(topLeft.X + 7, topLeft.Y + 7), new Point(bottomRight.X - 7, topLeft.Y + 7));
+
+                context.DrawLine(RectangleClipEdgePen, new Point(topLeft.X + 4, bottomRight.Y - 4), new Point(bottomRight.X - 4, bottomRight.Y - 4));
+                context.DrawLine(RectangleClipEdgePen, new Point(topLeft.X + 7, bottomRight.Y - 7), new Point(bottomRight.X - 7, bottomRight.Y - 7));
+            }
         }
 
 
