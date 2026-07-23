@@ -138,6 +138,7 @@ public partial class HotspotEditorView : UserControl
     private Pen RectangleBorderPen { get; } = new Pen(0xFFFFFFFF, 2);
     private Pen RectangleDashedBorderPen { get; } = new Pen(0xFFFFFFFF, 2, DashStyle.Dash);
     private Pen RectangleSnapLinePen { get; } = new Pen(0xC0FFE000, 2, DashStyle.Dash);
+    private Pen RectangleConcaveEdgePen { get; } = new Pen(0xFF0040C0, 2);
 
     private Brush TilingRectangleTopBrush { get; } = MakeLinearGradientBrush(new Point(0, 1), new Point(0, 0), 0x40F0F0FF, 0x00F0F0FF);
     private Brush TilingRectangleBottomBrush { get; } = MakeLinearGradientBrush(new Point(0, 0), new Point(0, 1), 0x40F0F0FF, 0x00F0F0FF);
@@ -366,6 +367,28 @@ public partial class HotspotEditorView : UserControl
                 for (var y = rectangle.Y + rectangle.SnapHeight.Value; y < rectangle.Y + rectangle.Height; y += rectangle.SnapHeight.Value)
                     context.DrawLine(RectangleSnapLinePen, TextureToScreenCoordinate(new Point(rectangle.X, y)), TextureToScreenCoordinate(new Point(rectangle.X + rectangle.Width, y)));
             }
+        }
+
+
+        // Concave edges:
+        if (IsIconsVisible)
+        {
+            var left = topLeft.X + 2;
+            var right = bottomRight.X - 2;
+            var top = topLeft.Y + 2;
+            var bottom = bottomRight.Y - 2;
+
+            if (rectangle.IsTopConcave)
+                context.DrawLine(RectangleConcaveEdgePen, new Point(left, top), new Point(right, top));
+
+            if (rectangle.IsRightConcave)
+                context.DrawLine(RectangleConcaveEdgePen, new Point(right, top), new Point(right, bottom));
+
+            if (rectangle.IsBottomConcave)
+                context.DrawLine(RectangleConcaveEdgePen, new Point(left, bottom), new Point(right, bottom));
+
+            if (rectangle.IsLeftConcave)
+                context.DrawLine(RectangleConcaveEdgePen, new Point(left, top), new Point(left, bottom));
         }
 
 
