@@ -1,12 +1,16 @@
 ﻿using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
+using HotspotMaker.Configuration;
 using HotspotMaker.Controls;
 using HotspotMaker.Editor;
 using HotspotMaker.Hotspot;
 using MLib.Texturing.Hotspotting;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -15,6 +19,7 @@ namespace HotspotMaker
     public class MainWindowVM : INotifyPropertyChanged
     {
         private const string DefaultWindowTitle = "HotspotMaker";
+        private const string SettingsFileName = "hotspotmaker.settings";
 
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -91,15 +96,19 @@ namespace HotspotMaker
 
         public bool IsIconsVisible => HotspotProject?.HotspotEditor.IsIconsVisible == true;
 
+        public IReadOnlyList<string> RecentFilePaths => Settings.RecentFilePaths;
+
 
         private IStorageProvider StorageProvider { get; }
         private IClipboard? Clipboard { get; }
+        private Settings Settings { get; }
 
 
         public MainWindowVM(IStorageProvider storageProvider, IClipboard? clipboard)
         {
             StorageProvider = storageProvider;
             Clipboard = clipboard;
+            Settings = TryLoadSettings() ?? new Settings();
 
             UpdateWindowTitle(null);
         }
@@ -128,10 +137,7 @@ namespace HotspotMaker
                 if (selectedFiles.Any())
                 {
                     var wadFilePath = selectedFiles.First().Path.LocalPath;
-                    var hotspotFilePath = wadFilePath + ".hotspot";
-                    HotspotProject = HotspotProjectVM.Load(wadFilePath, hotspotFilePath, Clipboard);
-
-                    StatusMessage = $"Opened '{wadFilePath}'.";
+                    OpenHotspotProject(wadFilePath);
                 }
             }
             catch (Exception ex)
@@ -303,6 +309,65 @@ namespace HotspotMaker
                 return;
 
             HotspotProject.HotspotEditor.ToggleIconsDisplay();
+        }
+
+
+        public async Task OpenRecentFilePath(string recentFilePath)
+        {
+            if (HotspotProject != null)
+            {
+                await CloseCurrentProject();
+                if (HotspotProject != null)
+                    return;
+            }
+
+            OpenHotspotProject(recentFilePath);
+        }
+
+
+        private void OpenHotspotProject(string wadFilePath)
+        {
+            var hotspotFilePath = wadFilePath + ".hotspot";
+            HotspotProject = HotspotProjectVM.Load(wadFilePath, hotspotFilePath, Clipboard);
+
+            Settings.AddRecentFilePath(wadFilePath);
+            RaisePropertyChanged(nameof(RecentFilePaths));
+
+            TrySaveSettings();
+
+            StatusMessage = $"Opened '{wadFilePath}'.";
+        }
+
+
+        private string GetSettingsFilePath()
+            => Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), SettingsFileName);
+
+        private Settings? TryLoadSettings()
+        {
+            try
+            {
+                var settingsFilePath = GetSettingsFilePath();
+                if (File.Exists(settingsFilePath))
+                    return Settings.Load(settingsFilePath);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to load settings: {ex.GetType().Name}: {ex.Message}.";
+            }
+
+            return null;
+        }
+
+        private void TrySaveSettings()
+        {
+            try
+            {
+                Settings.Save(GetSettingsFilePath());
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to save settings: {ex.GetType().Name}: {ex.Message}.";
+            }
         }
 
 

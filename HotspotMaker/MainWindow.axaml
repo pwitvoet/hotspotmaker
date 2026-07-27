@@ -18,11 +18,11 @@
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoLastAction}" />
     </Window.KeyBindings>
     <Grid RowDefinitions="Auto,*,Auto">
-        <Menu Grid.Row="0">
-            <MenuItem Header="_File">
+        <Menu x:Name="Menu" Grid.Row="0">
+            <MenuItem x:Name="FileMenuItem" Header="_File">
                 <MenuItem Header="_Open wad file" InputGesture="Ctrl+O" Command="{Binding OpenWadFile}" />
-                <!-- TODO: Show recent files! -->
-                <Separator />
+                <Separator x:Name="RecentFilesStartSeparator" IsVisible="False" />
+                <Separator x:Name="RecentFilesEndSeparator" />
                 <MenuItem Header="_Save" InputGesture="Ctrl+S" Command="{Binding SaveCurrentProject}" IsEnabled="{Binding HasOpenProject}" />
                 <Separator />
                 <MenuItem Header="_Close" InputGesture="Ctrl+W" Command="{Binding CloseCurrentProject}" IsEnabled="{Binding HasOpenProject}" />
