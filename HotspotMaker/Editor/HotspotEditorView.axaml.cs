@@ -126,7 +126,7 @@ public partial class HotspotEditorView : UserControl
 
     private Operation PointerOperation { get; set; }
     private Point PointerOperationStartPosition { get; set; }
-    private bool PointerOperationStartedAtSelectedRectangle { get; set; }
+    private ResizeDirection PointerOperationResizeDirection { get; set; }
     private KeyModifiers PointerOperationStartKeyModifiers { get; set; }
 
 
@@ -704,6 +704,8 @@ public partial class HotspotEditorView : UserControl
 
     private void HandlePointerMovement(HotspotEditorVM editor, Point position, Vector delta)
     {
+        UpdateCursor(editor, position);
+
         if (PointerState.HasFlag(PointerButtons.Left))
         {
             var startTextureCoordinate = ScreenToTextureCoordinate(PointerOperationStartPosition);
@@ -714,7 +716,7 @@ public partial class HotspotEditorView : UserControl
             {
                 // TODO: Check whether the pointer started at a resize handle -- if so, switch to resize mode! To be implemented later!
 
-                if (PointerOperationStartedAtSelectedRectangle)
+                if (PointerOperationResizeDirection == ResizeDirection.Move)
                 {
                     if (PointerOperationStartKeyModifiers.HasFlag(KeyModifiers.Control))
                     {
@@ -729,11 +731,17 @@ public partial class HotspotEditorView : UserControl
                         editor.UpdateMoveRectanglesOperation(currentTextureCoordinate, GridSize, IsGridEnabled);
                     }
                 }
-                else
+                else if (PointerOperationResizeDirection == ResizeDirection.None)
                 {
                     PointerOperation = Operation.CreateRectangle;
                     editor.StartCreateRectangleOperation(startTextureCoordinate, GridSize, IsGridEnabled);
                     editor.UpdateCreateRectangleOperation(currentTextureCoordinate, GridSize, IsGridEnabled);
+                }
+                else
+                {
+                    PointerOperation = Operation.ResizeSelectedRectangles;
+                    editor.StartResizeRectanglesOperation(startTextureCoordinate, PointerOperationResizeDirection, GridSize, IsGridEnabled);
+                    editor.UpdateResizeRectanglesOperation(currentTextureCoordinate, GridSize, IsGridEnabled);
                 }
             }
             else if (PointerOperation == Operation.DuplicateSelectedRectangles)
@@ -748,7 +756,10 @@ public partial class HotspotEditorView : UserControl
             {
                 editor.UpdateCreateRectangleOperation(currentTextureCoordinate, GridSize, IsGridEnabled);
             }
-            // TODO: Update resize operation!
+            else if (PointerOperation == Operation.ResizeSelectedRectangles)
+            {
+                editor.UpdateResizeRectanglesOperation(currentTextureCoordinate, GridSize, IsGridEnabled);
+            }
         }
 
         if (PointerState.HasFlag(PointerButtons.Right) || PointerState.HasFlag(PointerButtons.Middle))
@@ -775,8 +786,7 @@ public partial class HotspotEditorView : UserControl
             else
                 PointerOperation = Operation.PointSelection;
 
-            var rectanglesAtPosition = editor.GetRectanglesAtPoint(ScreenToTextureCoordinate(position));
-            PointerOperationStartedAtSelectedRectangle = editor.Selection.Rectangles.Any(rectangleVM => rectanglesAtPosition.Contains(rectangleVM));
+            PointerOperationResizeDirection = GetResizeDirection(editor, position);
             PointerOperationStartKeyModifiers = KeyModifiers;
         }
     }
@@ -804,25 +814,16 @@ public partial class HotspotEditorView : UserControl
                     break;
 
                 case Operation.CreateRectangle:
-                    editor.FinalizeCurrentOperation();
-                    break;
-
                 case Operation.MoveSelectedRectangles:
-                    editor.FinalizeCurrentOperation();
-                    break;
-
                 case Operation.DuplicateSelectedRectangles:
-                    editor.FinalizeCurrentOperation();
-                    break;
-
                 case Operation.ResizeSelectedRectangles:
-                    // TODO: Finalize resize action!
+                    editor.FinalizeCurrentOperation();
                     break;
             }
 
             PointerOperation = Operation.None;
             PointerOperationStartPosition = new Point();
-            PointerOperationStartedAtSelectedRectangle = false;
+            PointerOperationResizeDirection = ResizeDirection.None;
             PointerOperationStartKeyModifiers = KeyModifiers.None;
         }
     }
@@ -905,11 +906,85 @@ public partial class HotspotEditorView : UserControl
         => editor.SetSelection(editor.GetRectanglesInArea(textureArea));
 
 
+    private ResizeDirection GetResizeDirection(HotspotEditorVM editor, Point position)
+    {
+        if (editor.Selection.IsEmpty)
+            return ResizeDirection.None;
+
+        var margin = 5;
+        var selectionBounds = TextureToScreenCoordinate(editor.Selection.GetBounds());
+        var isInsideBounds = position.X > selectionBounds.Left - margin && position.X < selectionBounds.Right + margin &&
+            position.Y > selectionBounds.Top - margin && position.Y < selectionBounds.Bottom + margin;
+        if (!isInsideBounds)
+            return ResizeDirection.None;
+
+        var isOnTopEdge = position.Y < selectionBounds.Top + margin;
+        var isOnBottomEdge = position.Y > selectionBounds.Bottom - margin;
+        var isOnLeftEdge = position.X < selectionBounds.Left + margin;
+        var isOnRightEdge = position.X > selectionBounds.Right - margin;
+
+        if (isOnTopEdge)
+        {
+            if (isOnLeftEdge)
+                return ResizeDirection.TopLeft;
+            else if (isOnRightEdge)
+                return ResizeDirection.TopRight;
+            else
+                return ResizeDirection.Top;
+        }
+        else if (isOnBottomEdge)
+        {
+            if (isOnLeftEdge)
+                return ResizeDirection.BottomLeft;
+            else if (isOnRightEdge)
+                return ResizeDirection.BottomRight;
+            else
+                return ResizeDirection.Bottom;
+        }
+        else
+        {
+            if (isOnLeftEdge)
+                return ResizeDirection.Left;
+            else if (isOnRightEdge)
+                return ResizeDirection.Right;
+            else
+                return ResizeDirection.Move;
+        }
+    }
+
+    private void UpdateCursor(HotspotEditorVM editor, Point position)
+    {
+        if (editor.Selection.IsEmpty)
+        {
+            Cursor = Cursor.Default;
+            return;
+        }
+
+        var resizeDirection = GetResizeDirection(editor, position);
+        switch (resizeDirection)
+        {
+            case ResizeDirection.None: Cursor = Cursor.Default; break;
+            case ResizeDirection.TopLeft: Cursor = new Cursor(StandardCursorType.TopLeftCorner); break;
+            case ResizeDirection.Top: Cursor = new Cursor(StandardCursorType.TopSide); break;
+            case ResizeDirection.TopRight: Cursor = new Cursor(StandardCursorType.TopRightCorner); break;
+            case ResizeDirection.Right: Cursor = new Cursor(StandardCursorType.RightSide); break;
+            case ResizeDirection.BottomRight: Cursor = new Cursor(StandardCursorType.BottomRightCorner); break;
+            case ResizeDirection.Bottom: Cursor = new Cursor(StandardCursorType.BottomSide); break;
+            case ResizeDirection.BottomLeft: Cursor = new Cursor(StandardCursorType.BottomLeftCorner); break;
+            case ResizeDirection.Left: Cursor = new Cursor(StandardCursorType.LeftSide); break;
+            case ResizeDirection.Move: Cursor = new Cursor(StandardCursorType.SizeAll); break;
+        }
+    }
+
+
     private Point ScreenToTextureCoordinate(Point screenPoint)
         => (screenPoint - CameraOffset) / CameraScale;
 
     private Point TextureToScreenCoordinate(Point texturePoint)
         => (texturePoint * CameraScale) + CameraOffset;
+
+    private Rect TextureToScreenCoordinate(Rect textureRect)
+        => new Rect(TextureToScreenCoordinate(textureRect.TopLeft), TextureToScreenCoordinate(textureRect.BottomRight));
 
 
     // TODO: Move these to a util or extensions class!

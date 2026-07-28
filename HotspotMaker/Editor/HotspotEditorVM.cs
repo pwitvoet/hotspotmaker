@@ -100,6 +100,9 @@ namespace HotspotMaker.Editor
         private Point CurrentOperationStartCoordinate { get; set; }
         private HotspotRectangleVM[] CurrentOperationRectangles { get; set; } = Array.Empty<HotspotRectangleVM>();
         private Point[] CurrentOperationOriginalPositions { get; set; } = Array.Empty<Point>();
+        private ResizeDirection CurrentOperationResizeDirection { get; set; } = ResizeDirection.None;
+        private Rect[] CurrentOperationOriginalSizes { get; set; } = Array.Empty<Rect>();
+        private Rect CurrentOperationOriginalSelectionBounds { get; set; }
 
         private IClipboard? Clipboard { get; }
 
@@ -327,6 +330,101 @@ namespace HotspotMaker.Editor
                 });
         }
 
+        public void StartResizeRectanglesOperation(Point startTextureCoordinate, ResizeDirection resizeDirection, double gridSize, bool snapToGrid)
+        {
+            if (RectangleSet == null)
+                return;
+
+            // NOTE: No undoable action yet, because there has been no actual resizing yet.
+
+            CurrentOperationStartCoordinate = startTextureCoordinate;
+            CurrentOperationRectangles = Selection.Rectangles.ToArray();
+            CurrentOperationResizeDirection = resizeDirection;
+            CurrentOperationOriginalSizes = Selection.Rectangles
+                .Select(rectangleVM => new Rect(rectangleVM.X, rectangleVM.Y, rectangleVM.Width, rectangleVM.Height))
+                .ToArray();
+            CurrentOperationOriginalSelectionBounds = Selection.GetBounds();
+        }
+
+        public void UpdateResizeRectanglesOperation(Point currentTextureCoordinate, double gridSize, bool snapToGrid)
+        {
+            // Determine the effective offset:
+            var offset = GetSnappedCoordinate(currentTextureCoordinate - CurrentOperationStartCoordinate, gridSize, snapToGrid);
+            var resizeDirection = CurrentOperationResizeDirection;
+            if (!resizeDirection.HasFlag(ResizeDirection.Left) && !resizeDirection.HasFlag(ResizeDirection.Right))
+                offset = offset.WithX(0);
+            else if (!resizeDirection.HasFlag(ResizeDirection.Top) && !resizeDirection.HasFlag(ResizeDirection.Bottom))
+                offset = offset.WithY(0);
+
+
+            // Calculate the new selection boundary:
+            var originalBounds = CurrentOperationOriginalSelectionBounds;
+            var top = originalBounds.Top;
+            var right = originalBounds.Right;
+            var bottom = originalBounds.Bottom;
+            var left = originalBounds.Left;
+
+            if (resizeDirection.HasFlag(ResizeDirection.Top))
+                top += offset.Y;
+            if (resizeDirection.HasFlag(ResizeDirection.Right))
+                right += offset.X;
+            if (resizeDirection.HasFlag(ResizeDirection.Bottom))
+                bottom += offset.Y;
+            if (resizeDirection.HasFlag(ResizeDirection.Left))
+                left += offset.X;
+
+            if (left > right)
+                (left, right) = (right, left);
+            if (top > bottom)
+                (top, bottom) = (bottom, top);
+
+            // Special case: do not allow a width or height of 0:
+            if (right - left < 1)
+                right += (snapToGrid ? gridSize : 1);
+            if (bottom - top < 1)
+                bottom += (snapToGrid ? gridSize : 1);
+
+            var newBounds = new Rect(new Point(left, top), new Point(right, bottom));
+
+
+            // Calculate scale:
+            var scaleX = newBounds.Width / originalBounds.Width;
+            var scaleY = newBounds.Height / originalBounds.Height;
+
+
+            var selectedRectangles = CurrentOperationRectangles;
+            var originalSizes = CurrentOperationOriginalSizes;
+
+            var maxDigits = 2;
+
+            PerformUndoableActionOngoing(
+                "ResizeRectangles",
+                () =>
+                {
+                    for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
+                        var rectangleVM = selectedRectangles[i];
+                        var originalSize = originalSizes[i];
+
+                        rectangleVM.SetDimensionsWithoutUndo(
+                            Math.Round(newBounds.Left + (originalSize.X - originalBounds.Left) * scaleX, maxDigits),
+                            Math.Round(newBounds.Top + (originalSize.Y - originalBounds.Top) * scaleY, maxDigits),
+                            Math.Round(originalSize.Width * scaleX, maxDigits),
+                            Math.Round(originalSize.Height * scaleY, maxDigits));
+                    }
+                },
+                () =>
+                {
+                    for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
+                        var rectangleVM = selectedRectangles[i];
+                        var originalSize = originalSizes[i];
+
+                        rectangleVM.SetDimensionsWithoutUndo(originalSize.X, originalSize.Y, originalSize.Width, originalSize.Height);
+                    }
+                });
+        }
+
         public void MoveSelectedRectangles(Vector offset)
         {
             if (RectangleSet == null)
@@ -434,6 +532,10 @@ namespace HotspotMaker.Editor
 
             CurrentOperationStartCoordinate = new Point();
             CurrentOperationRectangles = Array.Empty<HotspotRectangleVM>();
+            CurrentOperationOriginalPositions = Array.Empty<Point>();
+            CurrentOperationResizeDirection = ResizeDirection.None;
+            CurrentOperationOriginalSizes = Array.Empty<Rect>();
+            CurrentOperationOriginalSelectionBounds = new Rect();
         }
 
         public void DeleteSelectedRectangles()
