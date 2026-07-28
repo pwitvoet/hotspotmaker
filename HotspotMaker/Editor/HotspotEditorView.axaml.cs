@@ -134,6 +134,8 @@ public partial class HotspotEditorView : UserControl
     private Brush BackgroundBrush { get; } = new SolidColorBrush(0xFF404040);
     private Pen GridPen { get; } = new Pen(0x20FFFFFF);
 
+    private Pen SelectionOutlinePen { get; } = new Pen(0xFFFF0000, 2, DashStyle.Dash);
+
     private Brush RectangleBrush { get; } = new SolidColorBrush(0x40F0F0FF);
     private Pen RectangleBorderPen { get; } = new Pen(0xFFFFFFFF, 2);
     private Pen RectangleDashedBorderPen { get; } = new Pen(0xFFFFFFFF, 2, DashStyle.Dash);
@@ -289,9 +291,7 @@ public partial class HotspotEditorView : UserControl
         {
             DrawTexture(context, editor);
             DrawHotspotRectangles(context, editor);
-
-            if (IsCoordinatesVisible)
-                DrawSelectionInformation(context, editor);
+            DrawSelectionOutline(context, editor);
 
             if (PointerOperation == Operation.AreaSelection)
                 DrawSelectionArea(context, editor);
@@ -313,7 +313,6 @@ public partial class HotspotEditorView : UserControl
         context.DrawImage(textureImage, new Rect(CameraOffset.X, CameraOffset.Y, textureImage.Size.Width * CameraScale, textureImage.Size.Height * CameraScale));
     }
 
-    // TODO: Draw the various hotspot rectangle settings! (snap distances as sub-rects, horizontal/vertical tiling as open-ended sides (no edge), tiling/rotating as little icons maybe? etc!)
     private void DrawHotspotRectangles(DrawingContext context, HotspotEditorVM editor)
     {
         var rectangleSet = editor.RectangleSet;
@@ -465,19 +464,28 @@ public partial class HotspotEditorView : UserControl
         }
     }
 
-    private void DrawSelectionInformation(DrawingContext context, HotspotEditorVM editor)
+    private void DrawSelectionOutline(DrawingContext context, HotspotEditorVM editor)
     {
         if (editor.Selection.IsEmpty)
             return;
 
-        var bounds = editor.Selection.GetBounds();
-        var topLeft = TextureToScreenCoordinate(bounds.TopLeft);
-        var topCenter = TextureToScreenCoordinate(new Point(bounds.X + bounds.Width / 2, bounds.Y));
-        var leftCenter = TextureToScreenCoordinate(new Point(bounds.X, bounds.Y + bounds.Height / 2));
 
-        DrawText(context, $"{bounds.X}, {bounds.Y}", new Point(topLeft.X - 20, topLeft.Y - 20));
-        DrawText(context, $"{bounds.Width}", new Point(topCenter.X, topCenter.Y - 20));
-        DrawText(context, $"{bounds.Height}", new Point(leftCenter.X - 20, leftCenter.Y));
+        // Draw outline:
+        var bounds = editor.Selection.GetBounds();
+        var screenBounds = TextureToScreenCoordinate(bounds);
+        context.DrawRectangle(SelectionOutlinePen, screenBounds);
+
+
+        if (IsCoordinatesVisible)
+        {
+            var topLeft = screenBounds.TopLeft;
+            var topCenter = new Point(screenBounds.X + screenBounds.Width / 2, screenBounds.Y);
+            var leftCenter = new Point(screenBounds.X, screenBounds.Y + screenBounds.Height / 2);
+
+            DrawText(context, $"{bounds.X}, {bounds.Y}", new Point(topLeft.X - 20, topLeft.Y - 20));
+            DrawText(context, $"{bounds.Width}", new Point(topCenter.X, topCenter.Y - 20));
+            DrawText(context, $"{bounds.Height}", new Point(leftCenter.X - 20, leftCenter.Y));
+        }
     }
 
     private void DrawSelectionArea(DrawingContext context, HotspotEditorVM editor)
@@ -714,8 +722,6 @@ public partial class HotspotEditorView : UserControl
             if ((PointerOperation == Operation.PointSelection || PointerOperation == Operation.PointSelectionUpdate) &&
                 DistanceBetween(position, PointerOperationStartPosition) > PointSelectionMoveThreshold)
             {
-                // TODO: Check whether the pointer started at a resize handle -- if so, switch to resize mode! To be implemented later!
-
                 if (PointerOperationResizeDirection == ResizeDirection.Move)
                 {
                     if (PointerOperationStartKeyModifiers.HasFlag(KeyModifiers.Control))
