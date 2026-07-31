@@ -48,6 +48,12 @@ namespace HotspotMaker.Configuration
                     }
                 }
 
+                var defaultPresetNode = root["default_preset"]?.AsObject();
+                if (defaultPresetNode != null)
+                {
+                    settings._defaultPreset = ParsePreset(defaultPresetNode);
+                }
+
                 return settings;
             }
         }
@@ -59,6 +65,9 @@ namespace HotspotMaker.Configuration
         private List<KeyBinding> _keyBindings = new();
         public IReadOnlyList<KeyBinding> KeyBindings => _keyBindings;
 
+        private Preset _defaultPreset;
+        public Preset DefaultPreset => _defaultPreset;
+
         private List<string> _recentFilePaths = new();
         public IReadOnlyList<string> RecentFilePaths => _recentFilePaths;
 
@@ -66,6 +75,11 @@ namespace HotspotMaker.Configuration
         public Settings()
         {
             _keyBindings = GetDefaultKeyBindings().ToList();
+
+            _defaultPreset = new Preset("Default", [
+                CreatePropertyPreset(HotspotRectangleProperties.AllowRotationProperty, PresetAction.SetValue, true),
+                CreatePropertyPreset(HotspotRectangleProperties.AllowHorizontalMirroringProperty, PresetAction.SetValue, true),
+                CreatePropertyPreset(HotspotRectangleProperties.AllowVerticalMirroringProperty, PresetAction.SetValue, true)]);
         }
 
         public void Save(string path)
@@ -83,6 +97,7 @@ namespace HotspotMaker.Configuration
                 var root = new JsonObject();
                 root["recent_file_paths"] = recentFilePathsArray;
                 root["key_bindings"] = keyBindingsArray;
+                root["default_preset"] = ToJson(DefaultPreset);
 
                 JsonSerializer.Serialize(file, root);
             }
@@ -194,11 +209,10 @@ namespace HotspotMaker.Configuration
                     CreatePropertyPreset(HotspotRectangleProperties.IsLeftConcaveProperty, PresetAction.SetValue, false),
                     CreatePropertyPreset(HotspotRectangleProperties.LabelsProperty, PresetAction.SetValue, Array.Empty<string>())])),
             ];
-
-
-            PropertyPreset<TValue> CreatePropertyPreset<TValue>(PropertyInfo<TValue> property, PresetAction action, TValue value)
-                => new PropertyPreset<TValue>(property, action, value);
         }
+
+        private static PropertyPreset<TValue> CreatePropertyPreset<TValue>(PropertyInfo<TValue> property, PresetAction action, TValue value)
+            => new PropertyPreset<TValue>(property, action, value);
 
 
         private static KeyBinding ParseKeyBinding(JsonObject json)

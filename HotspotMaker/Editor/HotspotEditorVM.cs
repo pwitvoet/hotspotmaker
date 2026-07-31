@@ -511,6 +511,10 @@ namespace HotspotMaker.Editor
                 Array.Empty<string>());
             var newRectangleVM = new HotspotRectangleVM(newRectangle, UndoSystem);
 
+            var applyDefaultPreset = Settings.DefaultPreset.CreateDoAction([newRectangleVM]);
+            applyDefaultPreset();
+
+
             PerformUndoableActionOngoing(
                 "CreateRectangle",
                 () => rectangleSet.Rectangles.Add(newRectangleVM),
