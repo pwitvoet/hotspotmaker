@@ -328,7 +328,7 @@ namespace HotspotMaker
         private void OpenHotspotProject(string wadFilePath)
         {
             var hotspotFilePath = wadFilePath + ".hotspot";
-            HotspotProject = HotspotProjectVM.Load(wadFilePath, hotspotFilePath, Clipboard);
+            HotspotProject = HotspotProjectVM.Load(wadFilePath, hotspotFilePath, Settings, Clipboard);
 
             Settings.AddRecentFilePath(wadFilePath);
             RaisePropertyChanged(nameof(RecentFilePaths));

@@ -2,6 +2,7 @@
 using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using HotspotMaker.Configuration;
 using HotspotMaker.Controls;
 using HotspotMaker.Editor;
 using HotspotMaker.History;
@@ -24,7 +25,7 @@ namespace HotspotMaker.Hotspot
     public class HotspotProjectVM : ChangeTrackingVM
     {
         // TODO: Improve error reporting!
-        public static HotspotProjectVM Load(string wadFilePath, string hotspotFilePath, IClipboard? clipboard)
+        public static HotspotProjectVM Load(string wadFilePath, string hotspotFilePath, Settings settings, IClipboard? clipboard)
         {
             WadFile wadFile;
             try
@@ -55,7 +56,7 @@ namespace HotspotMaker.Hotspot
                 throw;
             }
 
-            return new HotspotProjectVM(wadFile, hotspotFileData, hotspotFilePath, clipboard);
+            return new HotspotProjectVM(wadFile, hotspotFileData, hotspotFilePath, settings, clipboard);
         }
 
 
@@ -155,7 +156,7 @@ namespace HotspotMaker.Hotspot
         private List<(Regex, HotspotBindingVM)> WildcardHotspotBindings { get; } = new();
 
 
-        public HotspotProjectVM(WadFile wadFile, HotspotFileData hotspotFileData, string hotspotFilePath, IClipboard? clipboard)
+        public HotspotProjectVM(WadFile wadFile, HotspotFileData hotspotFileData, string hotspotFilePath, Settings settings, IClipboard? clipboard)
             : base(new UndoSystem())
         {
             HotspotBindings.CollectionChanged += HotspotBindings_CollectionChanged;
@@ -168,7 +169,7 @@ namespace HotspotMaker.Hotspot
             Selection = new HotspotRectangleSelectionVM(UndoSystem);
             Selection.PropertyChanged += Selection_PropertyChanged;
 
-            HotspotEditor = new HotspotEditorVM(UndoSystem, Selection, clipboard);
+            HotspotEditor = new HotspotEditorVM(UndoSystem, settings, Selection, clipboard);
             HotspotEditor.PropertyChanged += HotspotEditor_PropertyChanged;
 
             foreach (var rectangleSet in hotspotFileData.RectangleSets)

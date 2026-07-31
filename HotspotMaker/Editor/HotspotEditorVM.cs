@@ -1,8 +1,11 @@
 ﻿using Avalonia;
+using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Media;
+using HotspotMaker.Configuration;
 using HotspotMaker.History;
 using HotspotMaker.Hotspot;
+using HotspotMaker.Presets;
 using MLib.Mathematics.Spatial;
 using MLib.Texturing.Hotspotting;
 using System;
@@ -104,15 +107,17 @@ namespace HotspotMaker.Editor
         private Rect[] CurrentOperationOriginalSizes { get; set; } = Array.Empty<Rect>();
         private Rect CurrentOperationOriginalSelectionBounds { get; set; }
 
+        private Settings Settings { get; }
         private IClipboard? Clipboard { get; }
 
 
-        public HotspotEditorVM(UndoSystem undoSystem, HotspotRectangleSelectionVM selection, IClipboard? clipboard)
+        public HotspotEditorVM(UndoSystem undoSystem, Settings settings, HotspotRectangleSelectionVM selection, IClipboard? clipboard)
             : base(undoSystem)
         {
             Selection = selection;
             Selection.SelectionChanged += Selection_SelectionChanged;
 
+            Settings = settings;
             Clipboard = clipboard;
         }
 
@@ -213,6 +218,33 @@ namespace HotspotMaker.Editor
             return PasteResult.Success;
         }
 
+
+        public bool HandleKeyBinding(KeyGesture keyGesture)
+        {
+            var keyBinding = Settings.GetKeyBinding(keyGesture);
+            if (keyBinding == null)
+                return false;
+
+
+            switch (keyBinding.EditorAction)
+            {
+                case EditorAction.ToggleGrid: ToggleGrid(); break;
+                case EditorAction.IncreaseGridSize: IncreaseGridSize(); break;
+                case EditorAction.DecreaseGridSize: DecreaseGridSize(); break;
+                case EditorAction.Cut: _ = CopySelectionToClipboard(deleteSelection: true); break;
+                case EditorAction.Copy: _ = CopySelectionToClipboard(); break;
+                case EditorAction.Paste: _ = PasteFromClipboard(); break;
+                case EditorAction.SelectAll: SelectAllRectangles(); break;
+                case EditorAction.Delete: DeleteSelectedRectangles(); break;
+                case EditorAction.MoveUp: MoveSelectedRectangles(new Vector(0, -(IsGridEnabled ? GridSize : 1))); break;
+                case EditorAction.MoveRight: MoveSelectedRectangles(new Vector((IsGridEnabled ? GridSize : 1), 0)); break;
+                case EditorAction.MoveDown: MoveSelectedRectangles(new Vector(0, (IsGridEnabled ? GridSize : 1))); break;
+                case EditorAction.MoveLeft: MoveSelectedRectangles(new Vector(-(IsGridEnabled ? GridSize : 1), 0)); break;
+                case EditorAction.ApplyPreset: ApplyPresetToSelectedRectangles(keyBinding.Preset); break;
+                default: return false;
+            }
+            return true;
+        }
 
         public void ToggleGrid() => IsGridEnabled = !IsGridEnabled;
 
@@ -536,6 +568,28 @@ namespace HotspotMaker.Editor
             CurrentOperationResizeDirection = ResizeDirection.None;
             CurrentOperationOriginalSizes = Array.Empty<Rect>();
             CurrentOperationOriginalSelectionBounds = new Rect();
+        }
+
+
+        public void SelectAllRectangles()
+        {
+            if (RectangleSet != null)
+                SetSelection(RectangleSet.Rectangles);
+        }
+
+        public void ApplyPresetToSelectedRectangles(Preset? preset)
+        {
+            if (preset == null)
+                return;
+
+            var selectedRectangles = Selection.Rectangles.ToArray();
+            if (!selectedRectangles.Any())
+                return;
+
+
+            PerformUndoableAction(
+                preset.CreateDoAction(selectedRectangles),
+                preset.CreateUndoAction(selectedRectangles));
         }
 
         public void DeleteSelectedRectangles()
