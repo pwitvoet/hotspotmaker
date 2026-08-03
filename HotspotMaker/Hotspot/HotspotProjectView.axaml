@@ -200,7 +200,10 @@
                                 IsHitTestVisible="{Binding Selection.IsMultiSelection}" IsEnabled="{Binding Selection.IsMultiSelection}">
                             <StackPanel Orientation="Vertical" DataContext="{Binding Selection}">
                                 <!-- TODO: Selection count! -->
-                                <TextBlock Text="N hotspot rectangles" FontWeight="Bold" Margin="5" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
+                                    <TextBlock Text=" hotspot rectangles" FontWeight="Bold" Margin="0,5,5,5" />
+                                </StackPanel>
                         
                                 <!-- Rectangle properties: -->
                                 <StackPanel Orientation="Horizontal">

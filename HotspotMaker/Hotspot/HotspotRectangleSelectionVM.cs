@@ -57,6 +57,8 @@ namespace HotspotMaker.Hotspot
 
         public HotspotRectangleVM? SingleRectangle => _rectangles.Count == 1 ? _rectangles[0] : null;
 
+        public int SelectionCount => _rectangles.Count;
+
 
         private bool SuppressSelectionChangedEvents { get; set; }
 
@@ -268,6 +270,7 @@ namespace HotspotMaker.Hotspot
             RaisePropertyChanged(nameof(IsSingleSelection));
             RaisePropertyChanged(nameof(IsMultiSelection));
             RaisePropertyChanged(nameof(SingleRectangle));
+            RaisePropertyChanged(nameof(SelectionCount));
         }
 
         private void RectangleVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
