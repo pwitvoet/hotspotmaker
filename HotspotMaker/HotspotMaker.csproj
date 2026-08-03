@@ -36,6 +36,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Configuration\PresetWindow.axaml.cs">
+      <DependentUpon>PresetWindow.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Configuration\SettingsWindow.axaml.cs">
+      <DependentUpon>SettingsWindow.axaml</DependentUpon>
+    </Compile>
     <Compile Update="Controls\LabelsTextBox.axaml.cs">
       <DependentUpon>LabelsTextBox.axaml</DependentUpon>
     </Compile>

@@ -271,6 +271,18 @@ namespace HotspotMaker
         public void RedoLastAction()
             => HotspotProject?.RedoLastAction();
 
+        public async Task OpenSettingsWindow()
+        {
+            var settingsWindowVM = new SettingsWindowVM(Settings);
+            var result = await SettingsWindow.Show(settingsWindowVM);
+            if (result != true)
+                return;
+
+
+            Settings.UpdateKeyBindings(settingsWindowVM.GetKeyBindings());
+            TrySaveSettings();
+        }
+
         public void ToggleGrid()
         {
             if (HotspotProject == null)

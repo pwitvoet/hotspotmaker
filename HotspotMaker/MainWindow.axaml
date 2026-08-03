@@ -36,6 +36,8 @@
                 <Separator />
                 <MenuItem Header="_Undo" InputGesture="Ctrl+Z" Command="{Binding UndoLastAction}" IsEnabled="{Binding IsUndoAvailable}" />
                 <MenuItem Header="_Redo" InputGesture="Ctrl+Y" Command="{Binding RedoLastAction}" IsEnabled="{Binding IsRedoAvailable}" />
+                <Separator />
+                <MenuItem Header="_Settings" Command="{Binding OpenSettingsWindow}" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="Show _grid" InputGesture="G" Command="{Binding ToggleGrid}" IsEnabled="{Binding HasOpenProject}"

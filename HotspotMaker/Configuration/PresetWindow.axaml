@@ -1,0 +1,89 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
+        xmlns:configuration="using:HotspotMaker.Configuration"
+        xmlns:controls="using:HotspotMaker.Controls"
+        Width="700" Height="450"
+        x:Class="HotspotMaker.Configuration.PresetWindow"
+        x:DataType="configuration:PresetVM"
+        Title="Preset">
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
+        <TextBlock Grid.Row="0" Text="Preset description:" FontWeight="Bold" Margin="10" />
+
+        <TextBox Grid.Row="1" Text="{Binding Description}" Margin="10,0,10,10" />
+
+        <TextBlock Grid.Row="2" Text="Property presets:" FontWeight="Bold" Margin="10" />
+
+        <ListBox Grid.Row="3" ItemsSource="{Binding PropertyPresets}" Margin="10,0,10,10"
+                 Grid.IsSharedSizeScope="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <!-- Disable UI virtualization, so column width remains stable when scrolling around: -->
+                    <StackPanel Orientation="Vertical" />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="PropertyNameColumn" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ActionColumn" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ValueTextColumn" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="ButtonsColumn" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock Grid.Column="0" Text="{Binding Property.Name}" Margin="5" VerticalAlignment="Center" />
+
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableActions}" SelectedItem="{Binding Action}"
+                                  MinWidth="100" Margin="5" VerticalAlignment="Center" />
+
+                        <TextBlock Grid.Column="2" Text="Value:" Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsSetAction}" />
+                        <TextBlock Grid.Column="2" Text="Initial value:" Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsCycleAction}" />
+                        <TextBlock Grid.Column="2" Text="Value(s):" Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsInsertAction}" />
+
+
+                        <!-- Value(s): -->
+                        <CheckBox Grid.Column="3" IsChecked="{Binding BoolValue}"
+                                  Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsBoolProperty}" />
+
+                        <TextBox Grid.Column="3" Text="{Binding DoubleValue}"
+                                 Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsDoubleProperty}" />
+
+                        <!-- TODO: Allow NULL as value!! -->
+                        <TextBox Grid.Column="3" Text="{Binding NullableDoubleValue}"
+                                 Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsNullableDoubleProperty}" />
+
+                        <ComboBox Grid.Column="3" ItemsSource="{Binding AvailableHotspotLayoutValues}" SelectedValue="{Binding HotspotLayoutValue}"
+                                  Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsHotspotLayoutProperty}" />
+
+                        <controls:LabelsTextBox Grid.Column="3" Labels="{Binding StringArrayValue}"
+                                                Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsStringArrayProperty}" />
+
+
+                        <Button Grid.Column="4" Content="Remove" Command="{Binding $parent[ListBox].DataContext.RemovePropertyPreset}" CommandParameter="{Binding}"
+                                Padding="5" VerticalAlignment="Center" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal">
+            <TextBlock Text="" Margin="5" VerticalAlignment="Center" />
+
+            <ComboBox ItemsSource="{Binding AvailableProperties}" SelectedItem="{Binding SelectedNewProperty}" DisplayMemberBinding="{Binding Name}"
+                      MinWidth="100" Margin="5" VerticalAlignment="Center" />
+
+            <Button Content="Add property preset" Command="{Binding AddPropertyPreset}" Margin="5" />
+        </StackPanel>
+
+        <Border Grid.Row="5" Background="#D0D0D0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="OkButton" Content="Ok" Click="OkButton_Click" Padding="10,2" Margin="5" />
+                <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click" Padding="10,2" Margin="5" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

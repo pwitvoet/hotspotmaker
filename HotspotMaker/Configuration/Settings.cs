@@ -115,6 +115,12 @@ namespace HotspotMaker.Configuration
                 _recentFilePaths.RemoveAt(_recentFilePaths.Count - 1);
         }
 
+        public void UpdateKeyBindings(IEnumerable<KeyBinding> keyBindings)
+        {
+            _keyBindings.Clear();
+            _keyBindings.AddRange(keyBindings);
+        }
+
         public KeyBinding? GetKeyBinding(KeyGesture keyGesture)
             => KeyBindings.FirstOrDefault(keyBinding => keyBinding.KeyGesture == keyGesture);
 
@@ -290,7 +296,9 @@ namespace HotspotMaker.Configuration
         {
             var json = new JsonObject();
             json["action"] = keyBinding.EditorAction.ToString();
-            json["key_gesture"] = keyBinding.KeyGesture.ToString();
+
+            if (keyBinding.KeyGesture != null)
+                json["key_gesture"] = keyBinding.KeyGesture.ToString();
 
             if (keyBinding.Preset != null)
                 json["preset"] = ToJson(keyBinding.Preset);

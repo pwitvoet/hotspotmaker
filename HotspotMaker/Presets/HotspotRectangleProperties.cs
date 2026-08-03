@@ -1,6 +1,7 @@
 ﻿using HotspotMaker.Hotspot;
 using MLib.Texturing.Hotspotting;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HotspotMaker.Presets
@@ -32,7 +33,7 @@ namespace HotspotMaker.Presets
         public static PropertyInfo<string[]> LabelsProperty { get; } = new PropertyInfo<string[]>(nameof(HotspotRectangleVM.Labels), r => r.Labels, (r, v) => r.Labels = v, InsertLabels);
 
 
-        public static IPropertyInfo[] AllProperties { get; } = [
+        public static IReadOnlyList<IPropertyInfo> AllProperties { get; } = [
             XProperty,
             YProperty,
             WidthProperty,
