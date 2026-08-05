@@ -12,6 +12,7 @@
     <UserControl.Resources>
         <util:BoolToDoubleConverter x:Key="TrueToOneConverter" TrueValue="1" FalseValue="0" />
         <util:BoolToStringConverter x:Key="TrueToMultiValueMessageConverter" TrueValue="multiple values" />
+        <util:NullableDoubleConverter x:Key="NullableDoubleConverter" />
     </UserControl.Resources>
 
     <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
@@ -165,11 +166,11 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Snap width:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding SnapWidth}" MinWidth="50" Margin="5"
+                                    <TextBox Text="{Binding SnapWidth, Converter={StaticResource NullableDoubleConverter}}" MinWidth="50" Margin="5"
                                              LostFocus="TextBox_LostFocus" />
 
                                     <TextBlock Text="Snap height:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding SnapHeight}" MinWidth="50" Margin="5"
+                                    <TextBox Text="{Binding SnapHeight, Converter={StaticResource NullableDoubleConverter}}" MinWidth="50" Margin="5"
                                              LostFocus="TextBox_LostFocus" />
                                 </StackPanel>
 
@@ -199,12 +200,11 @@
                         <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding Selection.IsMultiSelection, Converter={StaticResource TrueToOneConverter}}"
                                 IsHitTestVisible="{Binding Selection.IsMultiSelection}" IsEnabled="{Binding Selection.IsMultiSelection}">
                             <StackPanel Orientation="Vertical" DataContext="{Binding Selection}">
-                                <!-- TODO: Selection count! -->
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="{Binding SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
                                     <TextBlock Text=" hotspot rectangles" FontWeight="Bold" Margin="0,5,5,5" />
                                 </StackPanel>
-                        
+
                                 <!-- Rectangle properties: -->
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="X:" VerticalAlignment="Center" Margin="5" />
@@ -249,12 +249,12 @@
 
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="Snap width:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding SnapWidth.Value}" MinWidth="50" Margin="5"
+                                    <TextBox Text="{Binding SnapWidth.Value, Converter={StaticResource NullableDoubleConverter}}" MinWidth="50" Margin="5"
                                              PlaceholderText="{Binding SnapWidth.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
                                              LostFocus="TextBox_LostFocus" />
 
                                     <TextBlock Text="Snap height:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding SnapHeight.Value}" MinWidth="50" Margin="5"
+                                    <TextBox Text="{Binding SnapHeight.Value, Converter={StaticResource NullableDoubleConverter}}" MinWidth="50" Margin="5"
                                              PlaceholderText="{Binding SnapHeight.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
                                              LostFocus="TextBox_LostFocus" />
                                 </StackPanel>

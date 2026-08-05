@@ -5,10 +5,14 @@
         mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="350"
         xmlns:configuration="using:HotspotMaker.Configuration"
         xmlns:controls="using:HotspotMaker.Controls"
+        xmlns:util="using:HotspotMaker.Util"
         Width="700" Height="450"
         x:Class="HotspotMaker.Configuration.PresetWindow"
         x:DataType="configuration:PresetVM"
         Title="Preset">
+    <Window.Resources>
+        <util:NullableDoubleConverter x:Key="NullableDoubleConverter" />
+    </Window.Resources>
     <Grid RowDefinitions="Auto,Auto,Auto,*,Auto,Auto">
         <TextBlock Grid.Row="0" Text="Preset description:" FontWeight="Bold" Margin="10" />
 
@@ -53,7 +57,7 @@
                                  Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsDoubleProperty}" />
 
                         <!-- TODO: Allow NULL as value!! -->
-                        <TextBox Grid.Column="3" Text="{Binding NullableDoubleValue}"
+                        <TextBox Grid.Column="3" Text="{Binding NullableDoubleValue, Converter={StaticResource NullableDoubleConverter}}"
                                  Margin="5" VerticalAlignment="Center" IsVisible="{Binding IsNullableDoubleProperty}" />
 
                         <ComboBox Grid.Column="3" ItemsSource="{Binding AvailableHotspotLayoutValues}" SelectedValue="{Binding HotspotLayoutValue}"

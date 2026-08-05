@@ -20,8 +20,7 @@ namespace HotspotMaker.Util
             {
                 _value = value;
 
-                if (value != null)
-                    SetValue(value);
+                SetValue(value);
 
                 RaisePropertyChanged();
             }
@@ -35,15 +34,15 @@ namespace HotspotMaker.Util
         }
 
 
-        private Action<TValue> SetValue { get; }
+        private Action<TValue?> SetValue { get; }
 
 
-        public NullableMultiValue(Action<TValue> setValue)
+        public NullableMultiValue(Action<TValue?> setValue)
         {
             SetValue = setValue;
         }
 
-        public void SetSingleValue(TValue value)
+        public void SetSingleValue(TValue? value)
         {
             _value = value;
             _hasMultipleValues = false;
