@@ -15,11 +15,11 @@
         <util:NullableDoubleConverter x:Key="NullableDoubleConverter" />
     </UserControl.Resources>
 
-    <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto">
+    <Grid Grid.Row="1" ColumnDefinitions="200,*,200">
         <!-- Textures list: -->
         <Grid Grid.Column="0" RowDefinitions="Auto,*">
             <TextBlock Grid.Row="0" Text="Textures" FontWeight="Bold" Margin="5" />
-            <ListBox Grid.Row="1" MinWidth="200" Margin="5"
+            <ListBox Grid.Row="1" Margin="5"
                      ItemsSource="{Binding TextureInfos}" SelectedItem="{Binding SelectedTextureInfo}"
                      ScrollViewer.AllowAutoHide="False">
                 <ListBox.ItemTemplate>
@@ -39,6 +39,8 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </Grid>
+
+        <GridSplitter Grid.Column="0" ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right" Width="5" />
 
         <Grid Grid.Column="1" RowDefinitions="*,Auto,Auto">
             <!-- TODO: Also show texture dimensions! And hotspot rectangle overlay! -->
@@ -293,10 +295,12 @@
             </Grid>
         </Grid>
 
+        <GridSplitter Grid.Column="2" ResizeDirection="Columns" ResizeBehavior="PreviousAndCurrent" HorizontalAlignment="Left" Width="5" />
+
         <!-- Hotspot rectangles list: -->
         <Grid Grid.Column="2" RowDefinitions="Auto,*">
             <TextBlock Grid.Row="0" Text="{Binding SelectedHotspotRectangleSet.Name}" FontWeight="Bold" Margin="5" />
-            <ListBox Grid.Row="1" DisplayMemberBinding="{ReflectionBinding DisplayName}" MinWidth="200" Margin="5"
+            <ListBox Grid.Row="1" DisplayMemberBinding="{ReflectionBinding DisplayName}" Margin="5"
                      ItemsSource="{Binding SelectedHotspotRectangleSet.Rectangles}"
                      SelectionMode="Multiple" SelectedItems="{Binding Selection.Rectangles}" AutoScrollToSelectedItem="False"
                      ScrollViewer.AllowAutoHide="False">
