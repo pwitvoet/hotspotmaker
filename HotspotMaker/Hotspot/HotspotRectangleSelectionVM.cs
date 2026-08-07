@@ -214,12 +214,12 @@ namespace HotspotMaker.Hotspot
                 () =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
-                        selectedRectangles[i].WithoutUndo(() => setValue(selectedRectangles[i], newValue));
+                        setValue(selectedRectangles[i], newValue);
                 },
                 () =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
-                        selectedRectangles[i].WithoutUndo(() => setValue(selectedRectangles[i], originalValues[i]));
+                        setValue(selectedRectangles[i], originalValues[i]);
                 });
         }
 
@@ -234,12 +234,12 @@ namespace HotspotMaker.Hotspot
                 () =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
-                        selectedRectangles[i].WithoutUndo(() => setValue(selectedRectangles[i], newValue));
+                        setValue(selectedRectangles[i], newValue);
                 },
                 () =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
-                        selectedRectangles[i].WithoutUndo(() => setValue(selectedRectangles[i], originalValues[i]));
+                        setValue(selectedRectangles[i], originalValues[i]);
                 });
         }
 
@@ -255,12 +255,12 @@ namespace HotspotMaker.Hotspot
                 () =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
-                        selectedRectangles[i].WithoutUndo(() => setValue(selectedRectangles[i], newValue));
+                        setValue(selectedRectangles[i], newValue);
                 },
                 () =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
-                        selectedRectangles[i].WithoutUndo(() => setValue(selectedRectangles[i], originalValues[i]));
+                        setValue(selectedRectangles[i], originalValues[i]);
                 });
         }
 

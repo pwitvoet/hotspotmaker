@@ -54,12 +54,7 @@ namespace HotspotMaker.Presets
             return () =>
             {
                 for (int i = 0; i < rectangles.Length; i++)
-                {
-                    rectangles[i].WithoutUndo(() =>
-                    {
-                        Property.SetValue(rectangles[i], currentValues[i]);
-                    });
-                }
+                    Property.SetValue(rectangles[i], currentValues[i]);
             };
         }
 
@@ -70,12 +65,7 @@ namespace HotspotMaker.Presets
             return () =>
             {
                 foreach (var hotspotRectangle in hotspotRectangles)
-                {
-                    hotspotRectangle.WithoutUndo(() =>
-                    {
-                        Property.SetValue(hotspotRectangle, value);
-                    });
-                }
+                    Property.SetValue(hotspotRectangle, value);
             };
         }
 
@@ -92,12 +82,7 @@ namespace HotspotMaker.Presets
             return () =>
             {
                 foreach (var hotspotRectangle in hotspotRectangles)
-                {
-                    hotspotRectangle.WithoutUndo(() =>
-                    {
-                        Property.SetValue(hotspotRectangle, nextValue);
-                    });
-                }
+                    Property.SetValue(hotspotRectangle, nextValue);
             };
         }
 
@@ -106,12 +91,7 @@ namespace HotspotMaker.Presets
             return () =>
             {
                 foreach (var hotspotRectangle in hotspotRectangles)
-                {
-                    hotspotRectangle.WithoutUndo(() =>
-                    {
-                        Property.InsertValue(hotspotRectangle, Value);
-                    });
-                }
+                    Property.InsertValue(hotspotRectangle, Value);
             };
         }
 

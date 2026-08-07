@@ -313,7 +313,7 @@ namespace HotspotMaker.Editor
                 var rectangleVM = CurrentOperationRectangles[i];
                 var originalPosition = CurrentOperationOriginalPositions[i];
 
-                rectangleVM.SetDimensionsWithoutUndo(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
+                rectangleVM.SetDimensions(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
             }
         }
 
@@ -347,7 +347,7 @@ namespace HotspotMaker.Editor
                         var rectangleVM = selectedRectangles[i];
                         var originalPosition = originalPositions[i];
 
-                        rectangleVM.SetDimensionsWithoutUndo(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.SetDimensions(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
                     }
                 },
                 () =>
@@ -357,7 +357,7 @@ namespace HotspotMaker.Editor
                         var rectangleVM = selectedRectangles[i];
                         var originalPosition = originalPositions[i];
 
-                        rectangleVM.SetDimensionsWithoutUndo(originalPosition.X, originalPosition.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.SetDimensions(originalPosition.X, originalPosition.Y, rectangleVM.Width, rectangleVM.Height);
                     }
                 });
         }
@@ -438,7 +438,7 @@ namespace HotspotMaker.Editor
                         var rectangleVM = selectedRectangles[i];
                         var originalSize = originalSizes[i];
 
-                        rectangleVM.SetDimensionsWithoutUndo(
+                        rectangleVM.SetDimensions(
                             Math.Round(newBounds.Left + (originalSize.X - originalBounds.Left) * scaleX, maxDigits),
                             Math.Round(newBounds.Top + (originalSize.Y - originalBounds.Top) * scaleY, maxDigits),
                             Math.Round(originalSize.Width * scaleX, maxDigits),
@@ -452,7 +452,7 @@ namespace HotspotMaker.Editor
                         var rectangleVM = selectedRectangles[i];
                         var originalSize = originalSizes[i];
 
-                        rectangleVM.SetDimensionsWithoutUndo(originalSize.X, originalSize.Y, originalSize.Width, originalSize.Height);
+                        rectangleVM.SetDimensions(originalSize.X, originalSize.Y, originalSize.Width, originalSize.Height);
                     }
                 });
         }
@@ -476,7 +476,7 @@ namespace HotspotMaker.Editor
                         var rectangleVM = selectedRectangles[i];
                         var originalPosition = originalPositions[i];
 
-                        rectangleVM.SetDimensionsWithoutUndo(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.SetDimensions(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
                     }
                 },
                 () =>
@@ -486,7 +486,7 @@ namespace HotspotMaker.Editor
                         var rectangleVM = selectedRectangles[i];
                         var originalPosition = originalPositions[i];
 
-                        rectangleVM.SetDimensionsWithoutUndo(originalPosition.X, originalPosition.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.SetDimensions(originalPosition.X, originalPosition.Y, rectangleVM.Width, rectangleVM.Height);
                     }
                 });
         }
@@ -555,7 +555,7 @@ namespace HotspotMaker.Editor
 
             // We don't need to update the undoable action here because we're modifying the newly created element:
             var minSize = snapToGrid ? gridSize : 1;
-            rectangleVM.SetDimensionsWithoutUndo(
+            rectangleVM.SetDimensions(
                 snappedTopLeft.X,
                 snappedTopLeft.Y,
                 Math.Max(minSize, snappedBottomRight.X - snappedTopLeft.X),

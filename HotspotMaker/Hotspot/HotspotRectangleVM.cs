@@ -212,11 +212,7 @@ namespace HotspotMaker.Hotspot
         }
 
 
-        // TODO: This can be removed, because HotspotRectangleVM doesn't create any undoable actions anymore!
-        public void WithoutUndo(Action action)
-            => action();
-
-        public void SetDimensionsWithoutUndo(double x, double y, double width, double height)
+        public void SetDimensions(double x, double y, double width, double height)
         {
             X = x;
             Y = y;
