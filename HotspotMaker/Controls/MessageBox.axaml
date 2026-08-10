@@ -10,6 +10,17 @@
             <TextBlock x:Name="MessageTextBlock" TextWrapping="Wrap" Margin="10" HorizontalAlignment="Center" />
 
             <ComboBox x:Name="OptionsComboBox" IsEnabled="False" IsVisible="False" MinWidth="150" Margin="5" HorizontalAlignment="Center" />
+
+            <TextBox x:Name="InputTextBox" IsEnabled="False" IsVisible="False" MinWidth="250" Margin="5" HorizontalAlignment="Center"
+                     TextChanged="InputTextBox_TextChanged">
+                <TextBox.Styles>
+                    <Style Selector="TextBox.Invalid">
+                        <Setter Property="Foreground" Value="#FF4000" />
+                    </Style>
+                </TextBox.Styles>
+            </TextBox>
+            <TextBlock x:Name="InputTextErrorMessage" TextWrapping="Wrap" Margin="5" HorizontalAlignment="Center"
+                       Foreground="#FF4000" />
         </StackPanel>
 
         <Border Grid.Row="1" Background="#D0D0D0">

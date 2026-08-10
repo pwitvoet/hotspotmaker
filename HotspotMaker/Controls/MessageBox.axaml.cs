@@ -53,10 +53,24 @@ namespace HotspotMaker.Controls
             return messageBox.Result == true ? messageBox.OptionIndex : null;
         }
 
+        public static async Task<string?> ShowTextBox(string title, string message, string? initialText = null, Func<string?, string?>? getErrorMessage = null, MessageBoxButtons buttons = MessageBoxButtons.OkCancel)
+        {
+            var messageBox = new MessageBox(title, message, buttons);
+            messageBox.SetTextBoxSettings(initialText, getErrorMessage);
+
+            if (!await messageBox.ShowAsDialog())
+                return null;
+
+            return messageBox.Result == true ? messageBox.InputText : null;
+        }
+
 
         private bool? Result { get; set; }
         private int? ButtonIndex { get; set; }
         private int? OptionIndex => OptionsComboBox.SelectedIndex;
+        private string? InputText => InputTextBox.Text;
+
+        private Func<string?, string?>? GetErrorMessage { get; set; }
 
 
         public MessageBox(string title, string message, MessageBoxButtons buttons)
@@ -101,7 +115,8 @@ namespace HotspotMaker.Controls
             }
         }
 
-        public void SetOptions(string[] options)
+
+        private void SetOptions(string[] options)
         {
             OptionsComboBox.IsEnabled = true;
             OptionsComboBox.IsVisible = true;
@@ -110,12 +125,37 @@ namespace HotspotMaker.Controls
             OptionsComboBox.SelectedIndex = 0;
         }
 
+        private void SetTextBoxSettings(string? initialText, Func<string?, string?>? getErrorMessage)
+        {
+            InputTextBox.IsEnabled = true;
+            InputTextBox.IsVisible = true;
+
+            GetErrorMessage = getErrorMessage;
+            InputTextBox.Text = initialText;
+        }
+
+        private void InputTextBox_TextChanged(object? sender, TextChangedEventArgs e)
+        {
+            if (GetErrorMessage != null)
+            {
+                var errorMessage = GetErrorMessage(InputTextBox.Text);
+                var isValid = string.IsNullOrEmpty(errorMessage);
+                InputTextErrorMessage.Text = errorMessage;
+
+                if (!isValid)
+                    InputTextBox.Classes.Add("Invalid");
+                else
+                    InputTextBox.Classes.Remove("Invalid");
+
+                OkButton.IsEnabled = isValid;
+            }
+        }
 
         protected override void OnKeyDown(KeyEventArgs e)
         {
             base.OnKeyDown(e);
 
-            if (e.Key == Key.Enter && OkButton.IsVisible)
+            if (e.Key == Key.Enter && OkButton.IsVisible && OkButton.IsEnabled)
             {
                 Result = true;
 
