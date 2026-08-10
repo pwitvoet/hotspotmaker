@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
+using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
@@ -394,9 +395,9 @@ public partial class HotspotEditorView : UserControl
             var topCenter = new Point(screenBounds.X + screenBounds.Width / 2, screenBounds.Y);
             var leftCenter = new Point(screenBounds.X, screenBounds.Y + screenBounds.Height / 2);
 
-            DrawText(context, $"{bounds.X}, {bounds.Y}", new Point(topLeft.X - 20, topLeft.Y - 20));
-            DrawText(context, $"{bounds.Width}", new Point(topCenter.X, topCenter.Y - 20));
-            DrawText(context, $"{bounds.Height}", new Point(leftCenter.X - 20, leftCenter.Y));
+            DrawText(context, $"{bounds.X}, {bounds.Y}", new Point(topLeft.X - 8, topLeft.Y - 4), HorizontalAlignment.Right, VerticalAlignment.Bottom);
+            DrawText(context, $"{bounds.Width}", new Point(topCenter.X, topCenter.Y - 4), HorizontalAlignment.Center, VerticalAlignment.Bottom);
+            DrawText(context, $"{bounds.Height}", new Point(leftCenter.X - 8, leftCenter.Y), HorizontalAlignment.Right, VerticalAlignment.Center);
         }
     }
 
@@ -436,6 +437,9 @@ public partial class HotspotEditorView : UserControl
             var yPos = Math.Round(CameraOffset.Y + y * CameraScale) + 0.5;
             context.DrawLine(GridPen, new Point(0, yPos), new Point(Bounds.Width, yPos));
         }
+
+
+        DrawText(context, $"Grid size: {GridSize}", new Point(Bounds.Width - 2, Bounds.Height - 2), HorizontalAlignment.Right, VerticalAlignment.Bottom);
     }
 
     private void DrawPointerCoordinates(DrawingContext context)
@@ -444,9 +448,23 @@ public partial class HotspotEditorView : UserControl
         DrawText(context, $"{Math.Round(textureCoordinates.X)}, {Math.Round(textureCoordinates.Y)}", new Point(2, 2));
     }
 
-    private void DrawText(DrawingContext context, string text, Point position)
+    private void DrawText(DrawingContext context, string text, Point position, HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Top)
     {
-        context.DrawText(new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection, Typeface.Default, 12, Foreground), position);
+        var formattedText = new FormattedText(text, CultureInfo.CurrentUICulture, FlowDirection, Typeface.Default, 12, Foreground);
+
+        var x = position.X;
+        if (horizontalAlignment == HorizontalAlignment.Center)
+            x -= formattedText.Width / 2;
+        else if (horizontalAlignment == HorizontalAlignment.Right)
+            x -= formattedText.Width;
+
+        var y = position.Y;
+        if (verticalAlignment == VerticalAlignment.Center)
+            y -= formattedText.Height / 2;
+        else if (verticalAlignment == VerticalAlignment.Bottom)
+            y -= formattedText.Height;
+
+        context.DrawText(formattedText, new Point(x, y));
     }
 
 
