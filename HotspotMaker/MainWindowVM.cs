@@ -52,7 +52,7 @@ namespace HotspotMaker
                 {
                     _hotspotProject.PropertyChanged -= HotspotProject_PropertyChanged;
                     _hotspotProject.HotspotEditor.PropertyChanged -= HotspotEditor_PropertyChanged;
-                    _hotspotProject.Selection.SelectionChanged -= Selection_SelectionChanged;
+                    _hotspotProject.RectangleSelection.SelectionChanged -= Selection_SelectionChanged;
                 }
 
                 _hotspotProject = value;
@@ -61,7 +61,7 @@ namespace HotspotMaker
                 {
                     _hotspotProject.PropertyChanged += HotspotProject_PropertyChanged;
                     _hotspotProject.HotspotEditor.PropertyChanged += HotspotEditor_PropertyChanged;
-                    _hotspotProject.Selection.SelectionChanged += Selection_SelectionChanged;
+                    _hotspotProject.RectangleSelection.SelectionChanged += Selection_SelectionChanged;
                 }
 
                 UpdateWindowTitle(value);
@@ -82,7 +82,7 @@ namespace HotspotMaker
 
         public bool IsCutAvailable => IsCopyAvailable;
 
-        public bool IsCopyAvailable => Clipboard != null && HotspotProject != null && !HotspotProject.Selection.IsEmpty;
+        public bool IsCopyAvailable => Clipboard != null && HotspotProject != null && !HotspotProject.RectangleSelection.IsEmpty;
 
         public bool IsPasteAvailable => Clipboard != null && HotspotProject != null;
 

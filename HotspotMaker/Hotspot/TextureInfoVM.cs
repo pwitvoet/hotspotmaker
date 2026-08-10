@@ -1,66 +1,64 @@
-﻿using MLib.Texturing;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+﻿using HotspotMaker.History;
+using MLib.Texturing;
+using MLib.Texturing.Hotspotting;
+using System;
+using System.Linq;
 
 namespace HotspotMaker.Hotspot
 {
-    public class TextureInfoVM : INotifyPropertyChanged
+    public class TextureInfoVM : ChangeTrackingVM
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void RaisePropertyChanged([CallerMemberName] string? propertyName = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-
-
         // Bindable properties:
-        public string Name => TextureInfo.Name;
-
-        private HotspotBindingVM? _binding;
-        public HotspotBindingVM? Binding
+        private HotspotRectangleSetVM? _hotspotRectangleSet;
+        public HotspotRectangleSetVM? HotspotRectangleSet
         {
-            get => _binding;
-            set
-            {
-                if (_binding != null)
-                    _binding.PropertyChanged -= Binding_PropertyChanged;
-
-                _binding = value;
-
-                if (_binding != null)
-                    _binding.PropertyChanged += Binding_PropertyChanged;
-
-                RaisePropertyChanged();
-                RaisePropertyChanged(nameof(HasBinding));
-                RaisePropertyChanged(nameof(IsModified));
-            }
+            get => _hotspotRectangleSet;
+            set { _hotspotRectangleSet = value; RaisePropertyChanged(); }
         }
 
+        private string? _fallbackTextureNamePattern;
+        public string? FallbackTextureNamePattern
+        {
+            get => _fallbackTextureNamePattern;
+            set { _fallbackTextureNamePattern = value; RaisePropertyChanged(); }
+        }
 
-        // Derived properties:
-        public bool HasBinding => Binding != null;
+        private double? _fallbackScoreThreshold;
+        public double? FallbackScoreThreshold
+        {
+            get => _fallbackScoreThreshold;
+            set { _fallbackScoreThreshold = value; RaisePropertyChanged(); }
+        }
 
-        // TODO: Also check if the referenced hotspot rectangle set has been modified!
-        public bool IsModified => Binding != OriginalBinding || (Binding != null && Binding.IsModified);
+        private string[] _labels = [];
+        public string[] Labels
+        {
+            get => _labels;
+            set { _labels = value; RaisePropertyChanged(); }
+        }
 
 
         // Read-only:
+        public string Name => TextureInfo.Name;
+
         public TextureInfo TextureInfo { get; }
 
-        public HotspotBindingVM? OriginalBinding { get; }
 
-
-        public TextureInfoVM(TextureInfo textureInfo, HotspotBindingVM? binding)
+        public TextureInfoVM(TextureInfo textureInfo, UndoSystem undoSystem)
+            : base(undoSystem)
         {
             TextureInfo = textureInfo;
-
-            OriginalBinding = binding;
-            Binding = binding;
         }
 
+        public void WithoutUndo(Action action)
+            => WithoutChangeTracking(action);
 
-        private void Binding_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        public HotspotBinding? CreateHotspotBinding()
         {
-            if (e.PropertyName == nameof(HotspotBindingVM.IsModified))
-                RaisePropertyChanged(nameof(IsModified));
+            if ((HotspotRectangleSet == null || string.IsNullOrEmpty(HotspotRectangleSet.Name)) && string.IsNullOrEmpty(FallbackTextureNamePattern) && FallbackScoreThreshold == null && !Labels.Any())
+                return null;
+
+            return new HotspotBinding(Name, HotspotRectangleSet?.Name ?? "", FallbackTextureNamePattern, FallbackScoreThreshold ?? 0, Labels);
         }
     }
 }

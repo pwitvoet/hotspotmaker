@@ -20,16 +20,17 @@
         <Grid Grid.Column="0" RowDefinitions="Auto,*">
             <TextBlock Grid.Row="0" Text="Textures" FontWeight="Bold" Margin="5" />
             <ListBox Grid.Row="1" Margin="5"
-                     ItemsSource="{Binding TextureInfos}" SelectedItem="{Binding SelectedTextureInfo}"
+                     ItemsSource="{Binding Textures}" SelectedItems="{Binding TextureSelection.Textures}"
+                     SelectionMode="Multiple"
                      ScrollViewer.AllowAutoHide="False">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="hotspot:TextureInfoVM">
-                        <TextBlock Text="{Binding Name}" Classes.IsModified="{Binding IsModified}" Classes.HasBinding="{Binding HasBinding}">
+                        <TextBlock Text="{Binding Name}" Classes.IsModified="{Binding IsModified}" Classes.HasRectangleSet="{Binding !!HotspotRectangleSet}">
                             <TextBlock.Styles>
                                 <Style Selector="TextBlock.IsModified">
                                     <Setter Property="Foreground" Value="#0087CC" />
                                 </Style>
-                                <Style Selector="TextBlock.HasBinding">
+                                <Style Selector="TextBlock.HasRectangleSet">
                                     <Setter Property="FontWeight" Value="Bold" />
                                 </Style>
                                 <!-- TODO: Also mark textures that use the same hotspot set as the currently selected texture! -->
@@ -43,11 +44,27 @@
         <GridSplitter Grid.Column="0" ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right" Width="5" />
 
         <Grid Grid.Column="1" RowDefinitions="*,Auto,Auto">
-            <!-- TODO: Also show texture dimensions! And hotspot rectangle overlay! -->
-            <!-- Selected texture: -->
+            <Grid.Styles>
+                <Style Selector="GroupBox">
+                    <Setter Property="Background" Value="#F4F4F4" />
+                    <Setter Property="Margin" Value="5" />
+                    <Setter Property="Padding" Value="5" />
+                </Style>
+                <Style Selector="CheckBox">
+                    <Setter Property="Background" Value="#FFFFFF" />
+                </Style>
+                <Style Selector="ComboBox">
+                    <Setter Property="Background" Value="#FFFFFF" />
+                </Style>
+                <Style Selector="controls|LabelsTextBox">
+                    <Setter Property="Background" Value="#FFFFFF" />
+                </Style>
+            </Grid.Styles>
+
+            <!-- Rectangle editor: -->
             <Border Grid.Row="0" BorderBrush="Black" BorderThickness="1">
                 <Grid RowDefinitions="Auto,*">
-                    <TextBlock Grid.Row="0" Text="{Binding SelectedTextureInfo.Name}" FontWeight="Bold" Margin="5" />
+                    <TextBlock Grid.Row="0" Text="{Binding TextureSelection.SingleTexture.Name}" FontWeight="Bold" Margin="5" />
                     <editor:HotspotEditorView x:Name="EditorView" Grid.Row="1" DataContext="{Binding HotspotEditor}" Focusable="True"
                                               Foreground="White"
                                               IsGridEnabled="{Binding IsGridEnabled}" GridSize="{Binding GridSize}"
@@ -55,104 +72,82 @@
                 </Grid>
             </Border>
 
-            <!-- Associated hotspot binding: -->
+            <!-- Selected texture(s): -->
             <Grid Grid.Row="1">
-                <Expander Header="Hotspot link" IsExpanded="True">
+                <Expander IsExpanded="True">
+                    <Expander.Header>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding TextureSelection.SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
+                            <TextBlock Text=" texture(s)" FontWeight="Bold" Margin="0,5,5,5" />
+                        </StackPanel>
+                    </Expander.Header>
                     <Grid>
-                        <Border BorderBrush="Black" BorderThickness="1"
-                                Opacity="{Binding HasSelectedHotspotBinding, Converter={StaticResource TrueToOneConverter}}"
-                                IsHitTestVisible="{Binding HasSelectedHotspotBinding}" IsEnabled="{Binding HasSelectedHotspotBinding}">
-                            <StackPanel Orientation="Vertical" DataContext="{Binding SelectedHotspotBinding}" Margin="5">
-                                <TextBlock Text="Hotspot data" FontWeight="Bold" Margin="5" />
+                        <!-- Textures selected: -->
+                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !TextureSelection.IsEmpty, Converter={StaticResource TrueToOneConverter}}"
+                                IsHitTestVisible="{Binding !TextureSelection.IsEmpty}" IsEnabled="{Binding !TextureSelection.IsEmpty}">
+                            <StackPanel DataContext="{Binding TextureSelection}" Orientation="Vertical">
+                                <GroupBox Header="Hotspot rectangle set">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Rectangle set:" VerticalAlignment="Center" Margin="5" />
+                                        <ComboBox ItemsSource="{Binding $parent[Border].DataContext.HotspotRectangleSets}" SelectedItem="{Binding HotspotRectangleSet.Value}"
+                                                  DisplayMemberBinding="{Binding Name}"
+                                                  PlaceholderText="{Binding HotspotRectangleSet.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
+                                                  VerticalAlignment="Center" MinWidth="150" Margin="5" />
 
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Texture name pattern:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding TextureNamePattern}" PlaceholderText="Texture name pattern" MinWidth="150" Margin="5"
-                                             LostFocus="TextBox_LostFocus" />
+                                        <Button Content="Create new" Command="{Binding $parent[Border].DataContext.CreateNewHotspotRectangleSet}" Margin="5" />
+                                    </StackPanel>
+                                </GroupBox>
 
-                                    <TextBlock Text="Hotspot set:" VerticalAlignment="Center" Margin="5" />
-                                    <!-- TODO: Dropdown box! And button to create a new rectangle set! -->
-                                    <ComboBox ItemsSource="{Binding $parent[Border].DataContext.HotspotRectangleSets}" SelectedItem="{Binding HotspotRectangleSet}"
-                                              DisplayMemberBinding="{Binding Name}"
-                                              VerticalAlignment="Center" MinWidth="150" Margin="5" />
-                                </StackPanel>
+                                <GroupBox Header="Fallback texture">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Fallback texture:" VerticalAlignment="Center" Margin="5" />
+                                        <TextBox Text="{Binding FallbackTextureNamePattern.Value}" MinWidth="50" Margin="5"
+                                                    PlaceholderText="{Binding FallbackTextureNamePattern.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
+                                                    LostFocus="TextBox_LostFocus" />
 
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Fallback texture:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding FallbackTextureNamePattern}" PlaceholderText="Fallback texture name pattern" MinWidth="150" Margin="5"
-                                             LostFocus="TextBox_LostFocus" />
+                                        <TextBlock Text="Score threshold:" VerticalAlignment="Center" Margin="5" />
+                                        <TextBox Text="{Binding FallbackScoreThreshold.Value}" MinWidth="50" Margin="5"
+                                                    PlaceholderText="{Binding FallbackScoreThreshold.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
+                                                    LostFocus="TextBox_LostFocus" />
+                                    </StackPanel>
+                                </GroupBox>
 
-                                    <TextBlock Text="Score threshold:" VerticalAlignment="Center" Margin="5" />
-                                    <TextBox Text="{Binding FallbackScoreThreshold}" MinWidth="50" Margin="5"
-                                             LostFocus="TextBox_LostFocus" />
-                                </StackPanel>
-
-                                <StackPanel Orientation="Horizontal">
-                                    <TextBlock Text="Labels:" VerticalAlignment="Center" Margin="5" />
-                                    <controls:LabelsTextBox Labels="{Binding Labels}" MinWidth="200" Margin="5"
-                                                            LostFocus="TextBox_LostFocus" />
-                                </StackPanel>
-
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                                    <Button Content="Unlink from rectangle set" Command="{Binding $parent[Border].DataContext.UnlinkTextureFromHotspotSet}" Margin="5" />
-                                </StackPanel>
+                                <GroupBox Header="Other">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Labels:" VerticalAlignment="Center" Margin="5" />
+                                        <controls:LabelsTextBox Labels="{Binding Labels.Value}" MinWidth="200" Margin="5"
+                                                                PlaceholderText="{Binding Labels.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
+                                                                LostFocus="TextBox_LostFocus" />
+                                    </StackPanel>
+                                </GroupBox>
                             </StackPanel>
                         </Border>
 
-                        <!-- No binding selected: -->
-                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding HasSelectedTextureWithoutHotspot, Converter={StaticResource TrueToOneConverter}}"
-                                IsHitTestVisible="{Binding HasSelectedTextureWithoutHotspot}" IsEnabled="{Binding HasSelectedTextureWithoutHotspot}">
-                            <StackPanel Orientation="Vertical" Margin="5">
-                                <TextBlock Text="Hotspot data" FontWeight="Bold" Margin="5" />
-
-                                <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5">
-                                    <Button Content="Link to new rectangle set" Command="{Binding LinkToNewHotspotSet}" Margin="5" />
-                                    <Button Content="Link to existing rectangle set" Command="{Binding LinkToExistingHotspotSet}" Margin="5" />
-                                    <Button Content="Create a link for multiple textures" Command="{Binding LinkMultipleTexturesToHotspotSet}" Margin="5" />
-                                </StackPanel>
-                            </StackPanel>
-                        </Border>
 
                         <!-- No texture selected: -->
-                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !HasSelectedTextureInfo, Converter={StaticResource TrueToOneConverter}}"
-                                IsHitTestVisible="{Binding !HasSelectedTextureInfo}" IsEnabled="{Binding !HasSelectedTextureInfo}">
-                            <TextBlock Text="No texture selected." HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5" />
+                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding TextureSelection.IsEmpty, Converter={StaticResource TrueToOneConverter}}"
+                                IsHitTestVisible="{Binding TextureSelection.IsEmpty}" IsEnabled="{Binding TextureSelection.IsEmpty}">
+                            <TextBlock Text="No texture selected" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </Grid>
                 </Expander>
             </Grid>
 
-            <!-- Selected hotspot rectangle: -->
+            <!-- Selected hotspot rectangle(s): -->
             <Grid Grid.Row="2">
                 <Expander IsExpanded="True">
                     <Expander.Header>
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="{Binding Selection.SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
+                            <TextBlock Text="{Binding RectangleSelection.SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
                             <TextBlock Text=" hotspot rectangles" FontWeight="Bold" Margin="0,5,5,5" />
                         </StackPanel>
                     </Expander.Header>
                     <Grid>
-                        <Grid.Styles>
-                            <Style Selector="GroupBox">
-                                <Setter Property="Background" Value="#F4F4F4" />
-                                <Setter Property="Margin" Value="5" />
-                                <Setter Property="Padding" Value="5" />
-                            </Style>
-                            <Style Selector="CheckBox">
-                                <Setter Property="Background" Value="#FFFFFF" />
-                            </Style>
-                            <Style Selector="ComboBox">
-                                <Setter Property="Background" Value="#FFFFFF" />
-                            </Style>
-                            <Style Selector="controls|LabelsTextBox">
-                                <Setter Property="Background" Value="#FFFFFF" />
-                            </Style>
-                        </Grid.Styles>
 
                         <!-- Hotspot rectangles selected: -->
-                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !Selection.IsEmpty, Converter={StaticResource TrueToOneConverter}}"
-                                IsHitTestVisible="{Binding !Selection.IsEmpty}" IsEnabled="{Binding !Selection.IsEmpty}">
-                            <Grid DataContext="{Binding Selection}" ColumnDefinitions="Auto,Auto">
+                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding !RectangleSelection.IsEmpty, Converter={StaticResource TrueToOneConverter}}"
+                                IsHitTestVisible="{Binding !RectangleSelection.IsEmpty}" IsEnabled="{Binding !RectangleSelection.IsEmpty}">
+                            <Grid DataContext="{Binding RectangleSelection}" ColumnDefinitions="Auto,Auto">
 
                                 <!-- Rectangle properties: -->
                                 <StackPanel Grid.Column="0" Orientation="Vertical">
@@ -250,8 +245,8 @@
                         </Border>
 
                         <!-- No hotspot rectangles selected: -->
-                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding Selection.IsEmpty, Converter={StaticResource TrueToOneConverter}}"
-                                IsHitTestVisible="{Binding Selection.IsEmpty}" IsEnabled="{Binding Selection.IsEmpty}">
+                        <Border BorderBrush="Black" BorderThickness="1" Opacity="{Binding RectangleSelection.IsEmpty, Converter={StaticResource TrueToOneConverter}}"
+                                IsHitTestVisible="{Binding RectangleSelection.IsEmpty}" IsEnabled="{Binding RectangleSelection.IsEmpty}">
                             <TextBlock Text="No hotspot rectangle selected" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
                     </Grid>
@@ -266,7 +261,7 @@
             <TextBlock Grid.Row="0" Text="{Binding SelectedHotspotRectangleSet.Name}" FontWeight="Bold" Margin="5" />
             <ListBox Grid.Row="1" DisplayMemberBinding="{ReflectionBinding DisplayName}" Margin="5"
                      ItemsSource="{Binding SelectedHotspotRectangleSet.Rectangles}"
-                     SelectionMode="Multiple" SelectedItems="{Binding Selection.Rectangles}" AutoScrollToSelectedItem="False"
+                     SelectionMode="Multiple" SelectedItems="{Binding RectangleSelection.Rectangles}" AutoScrollToSelectedItem="False"
                      ScrollViewer.AllowAutoHide="False">
             </ListBox>
         </Grid>

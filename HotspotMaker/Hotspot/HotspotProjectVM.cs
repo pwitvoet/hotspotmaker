@@ -6,18 +6,16 @@ using HotspotMaker.Configuration;
 using HotspotMaker.Controls;
 using HotspotMaker.Editor;
 using HotspotMaker.History;
-using HotspotMaker.Hotspot.Linking;
+using HotspotMaker.Util;
 using MLib.Texturing;
 using MLib.Texturing.Hotspotting;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace HotspotMaker.Hotspot
@@ -61,22 +59,6 @@ namespace HotspotMaker.Hotspot
 
 
         // Bindable properties:
-        private TextureInfoVM? _selectedTextureInfo;
-        public TextureInfoVM? SelectedTextureInfo
-        {
-            get => _selectedTextureInfo;
-            set
-            {
-                _selectedTextureInfo = value;
-
-                RaisePropertyChanged();
-                RaisePropertyChanged(nameof(HasSelectedTextureInfo));
-                RaisePropertyChanged(nameof(HasSelectedTextureWithoutHotspot));
-
-                OnSelectedTextureUpdate(value);
-            }
-        }
-
         private Bitmap? _selectedTextureImage;
         public Bitmap? SelectedTextureImage
         {
@@ -87,19 +69,6 @@ namespace HotspotMaker.Hotspot
                 HotspotEditor.TextureImage = value;
 
                 RaisePropertyChanged();
-            }
-        }
-
-        private HotspotBindingVM? _selectedHotspotBinding;
-        public HotspotBindingVM? SelectedHotspotBinding
-        {
-            get => _selectedHotspotBinding;
-            set
-            {
-                _selectedHotspotBinding = value;
-                RaisePropertyChanged();
-                RaisePropertyChanged(nameof(HasSelectedTextureWithoutHotspot));
-                RaisePropertyChanged(nameof(HasSelectedHotspotBinding));
             }
         }
 
@@ -117,21 +86,11 @@ namespace HotspotMaker.Hotspot
             }
         }
 
-        public ObservableCollection<HotspotBindingVM> HotspotBindings { get; } = new();
-
         public ObservableCollection<HotspotRectangleSetVM> HotspotRectangleSets { get; } = new();
 
 
         // Derived properties:
         public string WadFilePath => WadFile.FilePath;
-
-        public TextureInfoVM[] TextureInfos { get; }
-
-        public bool HasSelectedTextureInfo => SelectedTextureInfo != null;
-
-        public bool HasSelectedTextureWithoutHotspot => SelectedTextureInfo != null && SelectedHotspotBinding == null;
-
-        public bool HasSelectedHotspotBinding => SelectedHotspotBinding != null;
 
         public bool HasSelectedHotspotRectangleSet => SelectedHotspotRectangleSet != null;
 
@@ -140,141 +99,106 @@ namespace HotspotMaker.Hotspot
         public bool IsRedoAvailable => UndoSystem.IsRedoAvailable;
 
         public override bool IsModified
-            => base.IsModified || HotspotBindings.Any(bindingVM => bindingVM.IsModified) || HotspotRectangleSets.Any(rectangleSetVM => rectangleSetVM.IsModified) || Selection.IsModified || HotspotEditor.IsModified;
+        {
+            get
+            {
+                return base.IsModified ||
+                    Textures.Any(textureVM => textureVM.IsModified) ||
+                    TextureSelection.IsModified ||
+                    HotspotRectangleSets.Skip(1).Any(rectangleSetVM => rectangleSetVM.IsModified) ||
+                    RectangleSelection.IsModified ||
+                    HotspotEditor.IsModified;
+            }
+        }
 
 
         // Read-only:
         public string HotspotFilePath { get; }
 
-        public HotspotRectangleSelectionVM Selection { get; }
+        public TextureInfoVM[] Textures { get; }
+
+        public TextureSelectionVM TextureSelection { get; }
+
+        public HotspotRectangleSelectionVM RectangleSelection { get; }
+
         public HotspotEditorVM HotspotEditor { get; }
+
+        public HotspotRectangleSetVM NoHotspotRectangleSet { get; }
 
 
         // Internal state:
         private WadFile WadFile { get; }
-        private Dictionary<string, HotspotBindingVM> ExactBindings { get; } = new Dictionary<string, HotspotBindingVM>(StringComparer.InvariantCultureIgnoreCase);
-        private List<(Regex, HotspotBindingVM)> WildcardHotspotBindings { get; } = new();
 
 
         public HotspotProjectVM(WadFile wadFile, HotspotFileData hotspotFileData, string hotspotFilePath, Settings settings, IClipboard? clipboard)
             : base(new UndoSystem())
         {
-            HotspotBindings.CollectionChanged += HotspotBindings_CollectionChanged;
             HotspotRectangleSets.CollectionChanged += HotspotRectangleSets_CollectionChanged;
 
 
             WadFile = wadFile;
             HotspotFilePath = hotspotFilePath;
 
-            Selection = new HotspotRectangleSelectionVM(UndoSystem);
-            Selection.PropertyChanged += Selection_PropertyChanged;
+            TextureSelection = new TextureSelectionVM(UndoSystem);
+            TextureSelection.SelectionChanged += TextureSelection_SelectionChanged;
+            TextureSelection.PropertyChanged += TextureSelection_PropertyChanged;
 
-            HotspotEditor = new HotspotEditorVM(UndoSystem, settings, Selection, clipboard);
+            RectangleSelection = new HotspotRectangleSelectionVM(UndoSystem);
+            RectangleSelection.PropertyChanged += RectangleSelection_PropertyChanged;
+
+            HotspotEditor = new HotspotEditorVM(UndoSystem, settings, RectangleSelection, clipboard);
             HotspotEditor.PropertyChanged += HotspotEditor_PropertyChanged;
 
+
+            NoHotspotRectangleSet = new HotspotRectangleSetVM("", UndoSystem);
+            HotspotRectangleSets.Add(NoHotspotRectangleSet);
             foreach (var rectangleSet in hotspotFileData.RectangleSets)
                 HotspotRectangleSets.Add(new HotspotRectangleSetVM(rectangleSet, UndoSystem));
 
-            foreach (var binding in hotspotFileData.Bindings)
-            {
-                var hotspotRectangleSetVM = GetHotspotRectangleSet(binding.HotspotName);
-                var bindingVM = new HotspotBindingVM(binding, hotspotRectangleSetVM, UndoSystem);
-                RegisterHotspotBinding(bindingVM, ignoreTextureInfos: true);
-            }
+            var bindingLookup = hotspotFileData.Bindings.ToDictionary(binding => binding.TextureNamePattern, binding => binding);
+            var hotspotRectangleSetLookup = HotspotRectangleSets
+                .Skip(1)
+                .ToDictionary(rectangleSetVM => rectangleSetVM.Name, rectangleSetVM => rectangleSetVM);
 
-            // Initialize texture infos:
-            TextureInfos = wadFile.TextureInfos
-                .Select(textureInfo => new TextureInfoVM(textureInfo, GetBindingForTexture(textureInfo.Name)))
-                .OrderBy(entry => entry.Name)
+            Textures = wadFile.TextureInfos
+                .Select(textureInfo =>
+                {
+                    var textureInfoVM = new TextureInfoVM(textureInfo, UndoSystem);
+                    textureInfoVM.HotspotRectangleSet = NoHotspotRectangleSet;
+
+                    if (bindingLookup.TryGetValue(textureInfo.Name, out var hotspotBinding))
+                    {
+                        textureInfoVM.WithoutUndo(() =>
+                        {
+                            if (hotspotRectangleSetLookup.TryGetValue(hotspotBinding.HotspotName, out var rectangleSetVM))
+                                textureInfoVM.HotspotRectangleSet = rectangleSetVM;
+
+                            textureInfoVM.FallbackTextureNamePattern = hotspotBinding.FallbackTextureNamePattern;
+                            textureInfoVM.FallbackScoreThreshold = hotspotBinding.FallbackScoreThreshold;
+                            textureInfoVM.Labels = hotspotBinding.Labels.ToArray();
+                        });
+                    }
+
+                    textureInfoVM.PropertyChanged += TextureInfoVM_PropertyChanged;
+                    return textureInfoVM;
+                })
                 .ToArray();
-
-            foreach (var textureInfo in TextureInfos)
-                textureInfo.PropertyChanged += TextureInfo_PropertyChanged;
 
             UndoSystem.OnActionDone += UndoSystem_OnActionDone;
             UndoSystem.OnActionUndone += UndoSystem_OnActionUndone;
             UndoSystem.OnActionRedone += UndoSystem_OnActionRedone;
         }
 
-        private void RegisterHotspotBinding(HotspotBindingVM bindingVM, int? index = null, bool ignoreTextureInfos = false)
-        {
-            if (index != null)
-                HotspotBindings.Insert(index.Value, bindingVM);
-            else
-                HotspotBindings.Add(bindingVM);
-
-            if (HotspotNameMatching.HasWildcards(bindingVM.TextureNamePattern))
-            {
-                var regex = HotspotNameMatching.MakeNamePatternRegex(bindingVM.TextureNamePattern);
-                WildcardHotspotBindings.Add((regex, bindingVM));
-
-                // Update affected textures:
-                if (!ignoreTextureInfos)
-                {
-                    foreach (var textureInfo in TextureInfos)
-                    {
-                        if (textureInfo.Binding == null && regex.IsMatch(textureInfo.Name))
-                            textureInfo.Binding = bindingVM;
-                    }
-                }
-            }
-            else
-            {
-                // TODO: Handle duplicates!
-                ExactBindings[bindingVM.TextureNamePattern] = bindingVM;
-
-                // Update affected textures:
-                if (!ignoreTextureInfos)
-                {
-                    var textureInfo = TextureInfos.FirstOrDefault(textureInfo => string.Equals(textureInfo.Name, bindingVM.TextureNamePattern));
-                    if (textureInfo != null)
-                        textureInfo.Binding = bindingVM;
-                }
-            }
-        }
-
-        private void UnregisterHotspotBinding(HotspotBindingVM bindingVM)
-        {
-            HotspotBindings.Remove(bindingVM);
-
-            if (HotspotNameMatching.HasWildcards(bindingVM.TextureNamePattern))
-            {
-                // Remove wildcard binding:
-                for (int i = 0; i < WildcardHotspotBindings.Count; i++)
-                {
-                    if (WildcardHotspotBindings[i].Item2 == bindingVM)
-                    {
-                        WildcardHotspotBindings.RemoveAt(i);
-                        break;
-                    }
-                }
-
-                // Update affected textures:
-                foreach (var textureInfo in TextureInfos)
-                {
-                    if (textureInfo.Binding == bindingVM)
-                        textureInfo.Binding = GetBindingForTexture(textureInfo.Name);
-                }
-            }
-            else
-            {
-                ExactBindings.Remove(bindingVM.TextureNamePattern);
-
-                // Update affected textures:
-                var textureInfo = TextureInfos.FirstOrDefault(textureInfo => textureInfo.Binding == bindingVM);
-                if (textureInfo != null)
-                    textureInfo.Binding = GetBindingForTexture(textureInfo.Name);
-            }
-        }
-
         public HotspotFileData CreateHotspotFileData()
         {
             var rectangleSets = HotspotRectangleSets
+                .Skip(1)
                 .Select(rectangleSetVM => rectangleSetVM.CreateHotspotRectangleSet())
                 .ToArray();
 
-            var bindings = HotspotBindings
-                .Select(bindingVM => bindingVM.CreateHotspotBinding())
+            var bindings = Textures
+                .Select(textureInfoVM => textureInfoVM.CreateHotspotBinding())
+                .WhereNotNull()
                 .ToArray();
 
             return new HotspotFileData(rectangleSets, bindings);
@@ -284,142 +208,59 @@ namespace HotspotMaker.Hotspot
         {
             base.MarkAsUnmodified();
 
-            foreach (var bindingVM in HotspotBindings)
-                bindingVM.MarkAsUnmodified();
+            foreach (var textureInfoVM in Textures)
+                textureInfoVM.MarkAsUnmodified();
 
-            foreach (var rectangleSetVM in HotspotRectangleSets)
+            foreach (var rectangleSetVM in HotspotRectangleSets.Skip(1))
                 rectangleSetVM.MarkAsUnmodified();
 
-            Selection.MarkAsUnmodified();
+            RectangleSelection.MarkAsUnmodified();
             HotspotEditor.MarkAsUnmodified();
         }
 
 
         // Commands:
-        public void LinkToNewHotspotSet()
+        public async Task CreateNewHotspotRectangleSet()
         {
-            var textureInfo = SelectedTextureInfo;
-            if (textureInfo == null)
+            var initialName = $"rectangle_set_#{HotspotRectangleSets.Count}";
+            var newName = await MessageBox.ShowTextBox(
+                "Create new rectangle set",
+                "Enter a name for the new rectangle set:",
+                initialName,
+                name =>
+                {
+                    if (string.IsNullOrEmpty(name))
+                        return "Name must not be empty.";
+
+                    if (HotspotRectangleSets.Any(rectangleSet => string.Equals(rectangleSet.Name, name, StringComparison.InvariantCultureIgnoreCase)))
+                        return "A rectangle set with that name already exists.";
+
+                    return null;
+                });
+            if (string.IsNullOrEmpty(newName))
                 return;
 
 
-            var hotspotSetName = $"{textureInfo.Name}_rectangle_set";
-            var counter = 1;
-            while (HotspotRectangleSets.Any(rectangleSet => string.Equals(hotspotSetName, rectangleSet.Name, StringComparison.InvariantCultureIgnoreCase)))
-                hotspotSetName = $"{textureInfo.Name}_rectangle_set_{counter++}";
-
-            var newHotspotRectangleSet = new HotspotRectangleSetVM(hotspotSetName, UndoSystem);
-            var newHotspotBinding = new HotspotBindingVM(textureInfo.Name, newHotspotRectangleSet, UndoSystem);
-
-            SetTextureHotspotBindingWithUndo(newHotspotBinding, newHotspotRectangleSet, true);
-        }
-
-        public async Task LinkToExistingHotspotSet()
-        {
-            var textureInfo = SelectedTextureInfo;
-            if (textureInfo == null)
-                return;
-
-
-            var result = await MessageBox.ShowComboBox(
-                "Link to existing rectangle set",
-                "Link this texture to the following rectangle set:",
-                HotspotRectangleSets.Select(rectangleSet => rectangleSet.Name).ToArray());
-            if (result == null)
-                return;
-
-
-            var hotspotRectangleSet = HotspotRectangleSets[result.Value];
-            var newHotspotBinding = new HotspotBindingVM(textureInfo.Name, hotspotRectangleSet, UndoSystem);
-
-            SetTextureHotspotBindingWithUndo(newHotspotBinding, hotspotRectangleSet, false);
-        }
-
-        public async Task LinkMultipleTexturesToHotspotSet()
-        {
-            var multiLinkWindowVM = new MultiLinkWindowVM(SelectedTextureInfo?.Name ?? "*", TextureInfos, HotspotBindings, HotspotRectangleSets);
-            var result = await MultiLinkWindow.Show(multiLinkWindowVM);
-            if (result != true)
-                return;
-
-
-            var newHotspotRectangleSet = multiLinkWindowVM.IsNewHotspotRectangleSet ? new HotspotRectangleSetVM(multiLinkWindowVM.NewHotspotRectangleSetName, UndoSystem) : multiLinkWindowVM.SelectedHotspotRectangleSet;
-            var newHotspotBinding = new HotspotBindingVM(
-                new HotspotBinding(multiLinkWindowVM.TextureNamePattern, newHotspotRectangleSet.Name, multiLinkWindowVM.FallbackTextureNamePattern, 1, Array.Empty<string>()),
-                newHotspotRectangleSet,
-                UndoSystem);
-
-            SetTextureHotspotBindingWithUndo(newHotspotBinding, newHotspotRectangleSet, multiLinkWindowVM.IsNewHotspotRectangleSet);
-        }
-
-        public async Task UnlinkTextureFromHotspotSet()
-        {
-            var textureInfo = SelectedTextureInfo;
-            var oldHotspotBinding = textureInfo?.Binding;
-            if (textureInfo == null || oldHotspotBinding == null)
-                return;
-
-
-            var oldHotspotRectangleSet = oldHotspotBinding.HotspotRectangleSet;
-            var useCount = HotspotBindings.Where(binding => binding.HotspotRectangleSet == oldHotspotRectangleSet).Count();
-            var removeHotspotRectangleSet = false;
-            if (useCount == 1)
-            {
-                var result = await MessageBox.Show(
-                    "Unlink texture from rectangle set",
-                    "After unlinking, there are no other textures that use this rectangle set. Do you want to remove the rectangle set?",
-                    [
-                        "Unlink only",
-                        "Unlink and remove rectangle set",
-                        "Cancel",
-                    ]);
-
-                if (result != 0 && result != 1)
-                    return;
-
-                removeHotspotRectangleSet = result == 1;
-            }
-
-            var oldBindingIndex = HotspotBindings.IndexOf(oldHotspotBinding);
-            var oldRectangleSetIndex = oldHotspotRectangleSet == null ? 0 : HotspotRectangleSets.IndexOf(oldHotspotRectangleSet);
+            var newRectangleSet = new HotspotRectangleSetVM(newName, UndoSystem);
+            var selectedTextures = TextureSelection.Textures.ToArray();
+            var previousRectangleSets = selectedTextures.Select(textureVM => textureVM.HotspotRectangleSet).ToArray();
 
             PerformUndoableAction(
                 () =>
                 {
-                    UnregisterHotspotBinding(oldHotspotBinding);
+                    HotspotRectangleSets.Add(newRectangleSet);
 
-                    if (removeHotspotRectangleSet && oldHotspotRectangleSet != null)
-                        HotspotRectangleSets.Remove(oldHotspotRectangleSet);
+                    foreach (var textureVM in selectedTextures)
+                        textureVM.HotspotRectangleSet = newRectangleSet;
                 },
                 () =>
                 {
-                    if (removeHotspotRectangleSet && oldHotspotRectangleSet != null)
-                        HotspotRectangleSets.Insert(oldRectangleSetIndex, oldHotspotRectangleSet);
+                    HotspotRectangleSets.Remove(newRectangleSet);
 
-                    RegisterHotspotBinding(oldHotspotBinding, oldBindingIndex);
+                    for (int i = 0; i < selectedTextures.Length; i++)
+                        selectedTextures[i].HotspotRectangleSet = previousRectangleSets[i];
                 });
         }
-
-
-        private void SetTextureHotspotBindingWithUndo(HotspotBindingVM newHotspotBinding, HotspotRectangleSetVM newHotspotRectangleSet, bool isNewHotspotRectangleSet)
-        {
-            PerformUndoableAction(
-                () =>
-                {
-                    if (isNewHotspotRectangleSet)
-                        HotspotRectangleSets.Add(newHotspotRectangleSet);
-
-                    RegisterHotspotBinding(newHotspotBinding);
-                },
-                () =>
-                {
-                    UnregisterHotspotBinding(newHotspotBinding);
-
-                    if (isNewHotspotRectangleSet)
-                        HotspotRectangleSets.Remove(newHotspotRectangleSet);
-                });
-        }
-
 
         public void UndoLastAction()
             => UndoSystem.UndoLastAction();
@@ -452,27 +293,31 @@ namespace HotspotMaker.Hotspot
                 RaisePropertyChanged(nameof(IsModified));
         }
 
-        private void Selection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private void TextureSelection_SelectionChanged(TextureInfoVM[] deselected, TextureInfoVM[] selected)
+            => UpdateSelectedHotspotRectangleSet();
+
+        private void TextureSelection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(TextureSelectionVM.SingleTexture): UpdateTextureDisplay(); break;
+                case nameof(TextureSelectionVM.IsModified): RaisePropertyChanged(nameof(IsModified)); break;
+            }
+        }
+
+        private void TextureInfoVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(TextureInfoVM.HotspotRectangleSet))
+            {
+                if (sender is TextureInfoVM textureInfoVM && textureInfoVM == TextureSelection.SingleTexture)
+                    UpdateSelectedHotspotRectangleSet();
+            }
+        }
+
+        private void RectangleSelection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(HotspotRectangleSelectionVM.IsModified))
                 RaisePropertyChanged(nameof(IsModified));
-        }
-
-        private void HotspotBindings_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.NewItems != null)
-            {
-                foreach (var bindingVM in e.NewItems.OfType<HotspotBindingVM>())
-                    bindingVM.PropertyChanged += BindingVM_PropertyChanged;
-            }
-
-            if (e.OldItems != null)
-            {
-                foreach (var bindingVM in e.OldItems.OfType<HotspotBindingVM>())
-                    bindingVM.PropertyChanged -= BindingVM_PropertyChanged;
-            }
-
-            RaisePropertyChanged(nameof(IsModified));
         }
 
         private void HotspotRectangleSets_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -492,31 +337,6 @@ namespace HotspotMaker.Hotspot
             RaisePropertyChanged(nameof(IsModified));
         }
 
-        private void TextureInfo_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(TextureInfoVM.Binding))
-            {
-                if (sender == SelectedTextureInfo)
-                {
-                    SelectedHotspotBinding = SelectedTextureInfo?.Binding;
-                    SelectedHotspotRectangleSet = SelectedHotspotBinding?.HotspotRectangleSet;
-                }
-            }
-        }
-
-        private void BindingVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(HotspotBindingVM.IsModified))
-            {
-                RaisePropertyChanged(nameof(IsModified));
-            }
-            else if (e.PropertyName == nameof(HotspotBindingVM.HotspotRectangleSet))
-            {
-                if (sender == SelectedHotspotBinding)
-                    SelectedHotspotRectangleSet = SelectedHotspotBinding?.HotspotRectangleSet;
-            }
-        }
-
         private void RectangleSetVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(HotspotRectangleSetVM.IsModified))
@@ -524,25 +344,26 @@ namespace HotspotMaker.Hotspot
         }
 
 
-        private void OnSelectedTextureUpdate(TextureInfoVM? textureItem)
+        private void UpdateSelectedHotspotRectangleSet()
         {
-            if (textureItem == null)
+            var hotspotRectangleSet = TextureSelection.SingleTexture?.HotspotRectangleSet;
+            SelectedHotspotRectangleSet = (hotspotRectangleSet == NoHotspotRectangleSet) ? null : hotspotRectangleSet;
+        }
+
+        private void UpdateTextureDisplay()
+        {
+            var singleTexture = TextureSelection.SingleTexture;
+            if (singleTexture != null)
             {
-                SelectedTextureImage = null;
-                SelectedHotspotBinding = null;
-                SelectedHotspotRectangleSet = null;
+                // TODO: Error handling -- show a 'failed to load texture' message if loading fails!
+                var texture = WadFile.LoadTexture(singleTexture.TextureInfo);
+                SelectedTextureImage = CreateBitmapFromTexture(texture);
             }
             else
             {
-                var texture = WadFile.LoadTexture(textureItem.TextureInfo);
-                SelectedTextureImage = CreateBitmapFromTexture(texture);
-                SelectedHotspotBinding = textureItem.Binding;
-                SelectedHotspotRectangleSet = textureItem.Binding?.HotspotRectangleSet;
+                SelectedTextureImage = null;
             }
         }
-
-        private HotspotRectangleSetVM? GetHotspotRectangleSet(string? hotspotName)
-            => hotspotName != null ? HotspotRectangleSets.FirstOrDefault(rectangleSet => string.Equals(rectangleSet.Name, hotspotName, StringComparison.InvariantCultureIgnoreCase)) : null;
 
         private Bitmap CreateBitmapFromTexture(Texture texture)
         {
@@ -570,20 +391,6 @@ namespace HotspotMaker.Hotspot
                 }
             }
             return bitmap;
-        }
-
-        private HotspotBindingVM? GetBindingForTexture(string textureName)
-        {
-            if (ExactBindings.TryGetValue(textureName, out var exactBinding))
-                return exactBinding;
-
-            foreach ((var regex, var binding) in WildcardHotspotBindings)
-            {
-                if (regex.IsMatch(textureName))
-                    return binding;
-            }
-
-            return null;
         }
     }
 }
