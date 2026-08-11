@@ -88,6 +88,20 @@ namespace HotspotMaker.Hotspot
 
         public ObservableCollection<HotspotRectangleSetVM> HotspotRectangleSets { get; } = new();
 
+        private bool _isTexturePanelVisible = true;
+        public bool IsTexturePanelVisible
+        {
+            get => _isTexturePanelVisible;
+            set { _isTexturePanelVisible = value; RaisePropertyChanged(); }
+        }
+
+        private bool _isHotspotRectanglePanelVisible = true;
+        public bool IsHotspotRectanglePanelVisible
+        {
+            get => _isHotspotRectanglePanelVisible;
+            set { _isHotspotRectanglePanelVisible = value; RaisePropertyChanged(); }
+        }
+
 
         // Derived properties:
         public string WadFilePath => WadFile.FilePath;
@@ -267,6 +281,16 @@ namespace HotspotMaker.Hotspot
 
         public void RedoLastAction()
             => UndoSystem.RedoLastAction();
+
+        public void ToggleTexturePanel()
+        {
+            IsTexturePanelVisible = !IsTexturePanelVisible;
+        }
+
+        public void ToggleHotspotRectanglePanel()
+        {
+            IsHotspotRectanglePanelVisible = !IsHotspotRectanglePanelVisible;
+        }
 
 
         private void UndoSystem_OnActionDone()

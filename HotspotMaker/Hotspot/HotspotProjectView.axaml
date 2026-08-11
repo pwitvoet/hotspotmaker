@@ -74,7 +74,7 @@
 
             <!-- Selected texture(s): -->
             <Grid Grid.Row="1">
-                <Expander IsExpanded="True">
+                <Expander IsExpanded="{Binding IsTexturePanelVisible}">
                     <Expander.Header>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding TextureSelection.SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
@@ -135,7 +135,7 @@
 
             <!-- Selected hotspot rectangle(s): -->
             <Grid Grid.Row="2">
-                <Expander IsExpanded="True">
+                <Expander IsExpanded="{Binding IsHotspotRectanglePanelVisible}">
                     <Expander.Header>
                         <StackPanel Orientation="Horizontal">
                             <TextBlock Text="{Binding RectangleSelection.SelectionCount}" FontWeight="Bold" Margin="5,5,0,5" />
