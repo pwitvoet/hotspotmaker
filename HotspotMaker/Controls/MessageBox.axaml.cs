@@ -116,6 +116,18 @@ namespace HotspotMaker.Controls
         }
 
 
+        protected override void OnLoaded(RoutedEventArgs e)
+        {
+            base.OnLoaded(e);
+
+            if (InputTextBox.IsVisible)
+            {
+                InputTextBox.Focus();
+                InputTextBox.SelectAll();
+            }
+        }
+
+
         private void SetOptions(string[] options)
         {
             OptionsComboBox.IsEnabled = true;
