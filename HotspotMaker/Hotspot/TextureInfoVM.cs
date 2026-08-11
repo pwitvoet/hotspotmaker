@@ -13,7 +13,13 @@ namespace HotspotMaker.Hotspot
         public HotspotRectangleSetVM? HotspotRectangleSet
         {
             get => _hotspotRectangleSet;
-            set { _hotspotRectangleSet = value; RaisePropertyChanged(); }
+            set
+            {
+                _hotspotRectangleSet = value;
+
+                RaisePropertyChanged(nameof(HasHotspotRectangleSet));
+                RaisePropertyChanged();
+            }
         }
 
         private string? _fallbackTextureNamePattern;
@@ -36,6 +42,10 @@ namespace HotspotMaker.Hotspot
             get => _labels;
             set { _labels = value; RaisePropertyChanged(); }
         }
+
+
+        // Derived properties:
+        public bool HasHotspotRectangleSet => !string.IsNullOrEmpty(HotspotRectangleSet?.Name);
 
 
         // Read-only:
