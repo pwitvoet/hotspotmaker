@@ -269,10 +269,10 @@ namespace HotspotMaker.Hotspot
                 },
                 () =>
                 {
-                    HotspotRectangleSets.Remove(newRectangleSet);
-
                     for (int i = 0; i < selectedTextures.Length; i++)
                         selectedTextures[i].HotspotRectangleSet = previousRectangleSets[i];
+
+                    HotspotRectangleSets.Remove(newRectangleSet);
                 });
         }
 
