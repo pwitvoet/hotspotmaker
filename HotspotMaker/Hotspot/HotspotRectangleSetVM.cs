@@ -1,5 +1,6 @@
 ﻿using HotspotMaker.History;
 using MLib.Texturing.Hotspotting;
+using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -64,6 +65,9 @@ namespace HotspotMaker.Hotspot
             foreach (var rectangleVM in Rectangles)
                 rectangleVM.MarkAsUnmodified();
         }
+
+        public void WithoutUndo(Action action)
+            => WithoutChangeTracking(action);
 
 
         private void Rectangles_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

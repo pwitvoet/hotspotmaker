@@ -95,6 +95,8 @@
                                                   VerticalAlignment="Center" MinWidth="150" Margin="5" />
 
                                         <Button Content="Create new" Command="{Binding $parent[Border].DataContext.CreateNewHotspotRectangleSet}" Margin="5" />
+                                        <Button Content="Rename" Command="{Binding $parent[Border].DataContext.RenameHotspotRectangleSet}" Margin="5" />
+                                        <Button Content="Delete" Command="{Binding $parent[Border].DataContext.DeleteHotspotRectangleSet}" Margin="5" />
                                     </StackPanel>
                                 </GroupBox>
 

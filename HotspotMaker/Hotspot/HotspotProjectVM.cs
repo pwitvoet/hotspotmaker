@@ -276,6 +276,72 @@ namespace HotspotMaker.Hotspot
                 });
         }
 
+        public async Task RenameHotspotRectangleSet()
+        {
+            var selectedRectangleSet = SelectedHotspotRectangleSet;
+            if (selectedRectangleSet == null)
+                return;
+
+
+            var oldName = selectedRectangleSet.Name;
+            var newName = await MessageBox.ShowTextBox(
+                "Rename rectangle set",
+                "Enter a new name for the rectangle set:",
+                selectedRectangleSet.Name,
+                name =>
+                {
+                    if (string.IsNullOrEmpty(name))
+                        return "Name must not be empty.";
+
+                    if (HotspotRectangleSets.Any(rectangleSet => rectangleSet != selectedRectangleSet && string.Equals(rectangleSet.Name, name, StringComparison.InvariantCultureIgnoreCase)))
+                        return "A rectangle set with this name already exists.";
+
+                    return null;
+                });
+            if (string.IsNullOrEmpty(newName))
+                return;
+
+
+            PerformUndoableAction(
+                () => selectedRectangleSet.WithoutUndo(() => selectedRectangleSet.Name = newName),
+                () => selectedRectangleSet.WithoutUndo(() => selectedRectangleSet.Name = oldName));
+        }
+
+        public async Task DeleteHotspotRectangleSet()
+        {
+            var selectedRectangleSet = SelectedHotspotRectangleSet;
+            if (selectedRectangleSet == null)
+                return;
+
+
+            var affectedTextures = Textures.Where(texture => texture.HotspotRectangleSet == selectedRectangleSet).ToArray();
+            var result = await MessageBox.Show(
+                "Delete rectangle set",
+                $"Rectangle set '{selectedRectangleSet.Name}' is used by {affectedTextures.Length} textures. Are you sure you want to delete it?",
+                MessageBoxButtons.YesNo);
+            if (result != true)
+                return;
+
+
+            var rectangleSetIndex = HotspotRectangleSets.IndexOf(selectedRectangleSet);
+
+            PerformUndoableAction(
+                () =>
+                {
+                    foreach (var textureVM in affectedTextures)
+                        textureVM.HotspotRectangleSet = NoHotspotRectangleSet;
+
+                    HotspotRectangleSets.Remove(selectedRectangleSet);
+                },
+                () =>
+                {
+                    HotspotRectangleSets.Insert(rectangleSetIndex, selectedRectangleSet);
+
+                    foreach (var textureVM in affectedTextures)
+                        textureVM.HotspotRectangleSet = selectedRectangleSet;
+                });
+        }
+
         public void UndoLastAction()
             => UndoSystem.UndoLastAction();
 
