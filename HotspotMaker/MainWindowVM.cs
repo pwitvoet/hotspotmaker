@@ -179,8 +179,14 @@ namespace HotspotMaker
 
             if (HotspotProject.IsModified)
             {
-                var confirmation = await MessageBox.Show("Unsaved changes", "You have unsaved changes. Are you sure you want to close the project without saving?", MessageBoxButtons.OkCancel);
-                if (confirmation != true)
+                var buttonIndex = await MessageBox.Show(
+                    "Unsaved changes",
+                    "You have unsaved changes. Do you want to save them before closing the project?",
+                    ["Save", "Don't save", "Cancel"]);
+
+                if (buttonIndex == 0)
+                    await SaveCurrentProject();
+                else if (buttonIndex == null || buttonIndex == 2)
                     return;
             }
 
