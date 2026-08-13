@@ -25,7 +25,7 @@ namespace MLib.Texturing.Hotspotting
             var root = new JsonObject();
             root["hotspots"] = hotspotsNode;
             root["textures"] = texturesNode;
-            JsonSerializer.Serialize(file, root);
+            JsonSerializer.Serialize(file, root, new JsonSerializerOptions { WriteIndented = true });
         }
 
 
