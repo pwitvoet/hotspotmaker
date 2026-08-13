@@ -79,6 +79,9 @@ namespace HotspotMaker.Controls
         {
             base.Render(context);
 
+            context.FillRectangle(new SolidColorBrush(Colors.White), Bounds);
+
+
             var text = InternalTextBox.Text ?? "";
             var offsetX = InternalTextBox.Margin.Left + InternalTextBox.BorderThickness.Left + InternalTextBox.Padding.Left;
             var offsetY = InternalTextBox.Margin.Top + InternalTextBox.BorderThickness.Top + InternalTextBox.Padding.Top;

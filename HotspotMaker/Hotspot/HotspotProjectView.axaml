@@ -56,9 +56,6 @@
                 <Style Selector="ComboBox">
                     <Setter Property="Background" Value="#FFFFFF" />
                 </Style>
-                <Style Selector="controls|LabelsTextBox">
-                    <Setter Property="Background" Value="#FFFFFF" />
-                </Style>
             </Grid.Styles>
 
             <!-- Rectangle editor: -->
