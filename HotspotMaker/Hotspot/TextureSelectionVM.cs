@@ -1,4 +1,5 @@
 ﻿using HotspotMaker.History;
+using HotspotMaker.Presets;
 using HotspotMaker.Util;
 using System;
 using System.Collections.Generic;
@@ -48,7 +49,7 @@ namespace HotspotMaker.Hotspot
             HotspotRectangleSet = new NullableMultiValue<HotspotRectangleSetVM?>(value => SetMultiProperty(value, r => r.HotspotRectangleSet, (r, v) => r.HotspotRectangleSet = v));
             FallbackTextureNamePattern = new NullableMultiValue<string?>(value => SetMultiPropertyOngoing(value, r => r.FallbackTextureNamePattern, (r, v) => r.FallbackTextureNamePattern = v, nameof(FallbackTextureNamePattern)));
             FallbackScoreThreshold = new NullableMultiValue<double?>(value => SetMultiPropertyOngoing(value, r => r.FallbackScoreThreshold, (r, v) => r.FallbackScoreThreshold = v, nameof(FallbackScoreThreshold)));
-            Labels = new NullableMultiValue<string[]>(value => SetMultiPropertyOngoing(value, r => r.Labels, (r, v) => r.Labels = v, nameof(Labels)));
+            Labels = new NullableMultiValue<string[]>(value => SetMultiPropertyOngoing(value, r => r.Labels, (r, v) => r.Labels = v, nameof(Labels)), HotspotRectangleProperties.GetLabelsEqualityComparer());
         }
 
         private void Textures_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -169,7 +170,7 @@ namespace HotspotMaker.Hotspot
             {
                 var firstValue = getValue(_textures[0]);
                 var comparer = EqualityComparer<TValue>.Default;
-                var hasMultipleValues = _textures.Any(rectangleVM => !comparer.Equals(getValue(rectangleVM), firstValue));
+                var hasMultipleValues = _textures.Any(rectangleVM => !multiValue.Comparer.Equals(getValue(rectangleVM), firstValue));
 
                 if (hasMultipleValues)
                     multiValue.SetMultiValue();

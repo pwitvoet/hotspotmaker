@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using HotspotMaker.History;
+using HotspotMaker.Presets;
 using HotspotMaker.Util;
 using MLib.Texturing.Hotspotting;
 using System;
@@ -89,7 +90,7 @@ namespace HotspotMaker.Hotspot
             IsBottomConcave = new MultiValue<bool>(value => SetMultiProperty(value, r => r.IsBottomConcave, (r, v) => r.IsBottomConcave = v));
             IsLeftConcave = new MultiValue<bool>(value => SetMultiProperty(value, r => r.IsLeftConcave, (r, v) => r.IsLeftConcave = v));
 
-            Labels = new NullableMultiValue<string[]>(value => SetMultiPropertyOngoing(value, r => r.Labels, (r, v) => r.Labels = v, nameof(Labels)));
+            Labels = new NullableMultiValue<string[]>(value => SetMultiPropertyOngoing(value, r => r.Labels, (r, v) => r.Labels = v, nameof(Labels)), HotspotRectangleProperties.GetLabelsEqualityComparer());
         }
 
         public void Clear()
@@ -306,7 +307,7 @@ namespace HotspotMaker.Hotspot
             {
                 var firstValue = getValue(_rectangles[0]);
                 var comparer = EqualityComparer<TValue>.Default;
-                var hasMultipleValues = _rectangles.Any(rectangleVM => !comparer.Equals(getValue(rectangleVM), firstValue));
+                var hasMultipleValues = _rectangles.Any(rectangleVM => !multiValue.Comparer.Equals(getValue(rectangleVM), firstValue));
 
                 if (hasMultipleValues)
                     multiValue.SetMultiValue();
@@ -330,7 +331,7 @@ namespace HotspotMaker.Hotspot
             {
                 var firstValue = getValue(_rectangles[0]);
                 var comparer = EqualityComparer<TValue>.Default;
-                var hasMultipleValues = _rectangles.Any(rectangleVM => !comparer.Equals(getValue(rectangleVM), firstValue));
+                var hasMultipleValues = _rectangles.Any(rectangleVM => !multiValue.Comparer.Equals(getValue(rectangleVM), firstValue));
 
                 if (hasMultipleValues)
                     multiValue.SetMultiValue();

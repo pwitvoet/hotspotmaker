@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -34,13 +35,16 @@ namespace HotspotMaker.Util
             private set => _hasMultipleValues = value;
         }
 
+        public IEqualityComparer<TValue> Comparer { get; }
+
 
         private Action<TValue> SetValue { get; }
 
 
-        public MultiValue(Action<TValue> setValue)
+        public MultiValue(Action<TValue> setValue, IEqualityComparer<TValue>? comparer = null)
         {
             SetValue = setValue;
+            Comparer = comparer ?? EqualityComparer<TValue>.Default;
         }
 
         public void SetSingleValue(TValue value)

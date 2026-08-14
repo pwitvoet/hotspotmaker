@@ -67,5 +67,13 @@ namespace HotspotMaker.Presets
             }
             hotspotRectangle.Labels = newLabels.ToArray();
         }
+
+
+        public static IEqualityComparer<string[]> GetLabelsEqualityComparer()
+        {
+            return EqualityComparer<string[]>.Create(
+                (labels1, labels2) => (labels1 != null && labels2 != null) ? Enumerable.SequenceEqual(labels1, labels2) : false,
+                labels => labels.Select(label => label.GetHashCode()).Aggregate((result, hash) => result ^ hash));
+        }
     }
 }
