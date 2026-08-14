@@ -16,6 +16,7 @@
         <KeyBinding Gesture="Alt+F4" Command="{Binding ExitProgram}" />
         <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoLastAction}" />
         <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoLastAction}" />
+        <KeyBinding Gesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" />
         <KeyBinding Gesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" />
         <KeyBinding Gesture="Ctrl+R" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" />
     </Window.KeyBindings>
@@ -49,7 +50,7 @@
                 <Separator />
                 <MenuItem Header="Show _coordinates" Command="{Binding ToggleCoordinatesDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsCoordinatesVisible}" />
-                <MenuItem Header="Show ic_ons" Command="{Binding ToggleIconsDisplay}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show ic_ons" InputGesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsIconsVisible}" />
                 <Separator />
                 <MenuItem Header="Show _texture panel" InputGesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" IsEnabled="{Binding HasOpenProject}"
