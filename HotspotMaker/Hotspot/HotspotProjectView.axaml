@@ -56,6 +56,9 @@
                 <Style Selector="ComboBox">
                     <Setter Property="Background" Value="#FFFFFF" />
                 </Style>
+                <Style Selector="Expander">
+                    <Setter Property="ContentTransition" Value="{x:Null}" />
+                </Style>
             </Grid.Styles>
 
             <!-- Rectangle editor: -->
