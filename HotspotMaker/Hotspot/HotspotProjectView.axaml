@@ -236,7 +236,7 @@
 
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="Labels:" VerticalAlignment="Center" Margin="5" />
-                                                <controls:LabelsTextBox Labels="{Binding Labels.Value}" MinWidth="200" Margin="5"
+                                                <controls:LabelsTextBox x:Name="HotspotRectangleLabelsTextBox" Labels="{Binding Labels.Value}" MinWidth="200" Margin="5"
                                                                         PlaceholderText="{Binding Labels.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
                                                                         LostFocus="TextBox_LostFocus" />
                                             </StackPanel>

@@ -58,6 +58,12 @@ namespace HotspotMaker.Hotspot
         }
 
 
+        // Events:
+        public event Action? HotspotRectangleLabelsFocusRequested;
+        protected void RaiseHotspotRectangleLabelsFocusRequested()
+            => HotspotRectangleLabelsFocusRequested?.Invoke();
+
+
         // Bindable properties:
         private Bitmap? _selectedTextureImage;
         public Bitmap? SelectedTextureImage
@@ -357,6 +363,9 @@ namespace HotspotMaker.Hotspot
         {
             IsHotspotRectanglePanelVisible = !IsHotspotRectanglePanelVisible;
         }
+
+        public void FocusHotspotRectangleLabels()
+            => RaiseHotspotRectangleLabelsFocusRequested();
 
 
         private void UndoSystem_OnActionDone()

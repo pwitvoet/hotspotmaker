@@ -19,6 +19,7 @@
         <KeyBinding Gesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" />
         <KeyBinding Gesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" />
         <KeyBinding Gesture="Ctrl+R" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" />
+        <KeyBinding Gesture="F2" Command="{Binding HotspotProject.FocusHotspotRectangleLabels}" />
     </Window.KeyBindings>
     <Grid RowDefinitions="Auto,*,Auto">
         <Menu x:Name="Menu" Grid.Row="0">

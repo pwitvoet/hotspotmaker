@@ -72,6 +72,8 @@ namespace HotspotMaker.Controls
         public LabelsTextBox()
         {
             InitializeComponent();
+
+            Focusable = true;
         }
 
 
@@ -111,6 +113,13 @@ namespace HotspotMaker.Controls
             }
         }
 
+
+        protected override void OnGotFocus(FocusChangedEventArgs e)
+        {
+            base.OnGotFocus(e);
+            InternalTextBox.Focus(e.NavigationMethod, e.KeyModifiers);
+            InternalTextBox.CaretIndex = InternalTextBox.Text?.Length ?? 0;
+        }
 
         private void InternalTextBox_TextChanged(object? sender, TextChangedEventArgs e)
         {
