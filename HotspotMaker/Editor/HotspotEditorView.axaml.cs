@@ -354,7 +354,7 @@ public partial class HotspotEditorView : UserControl
         }
 
 
-        // Property icons:
+        // Property icons & labels:
         if (IsIconsVisible && CameraScale >= 0.5)
         {
             var drawPosition = new Point(topLeft.X + 1, topLeft.Y + 1);
@@ -373,6 +373,17 @@ public partial class HotspotEditorView : UserControl
             {
                 context.DrawImage(mirrorIcon, new Rect(drawPosition, mirrorIcon.Size));
                 drawPosition = new Point(drawPosition.X + mirrorIcon.Size.Width + 1, drawPosition.Y);
+            }
+
+            // TODO: Handle overflow!
+            // TODO: Label coloring?
+            foreach (var label in rectangle.Labels)
+            {
+                var formattedText = new FormattedText(label, CultureInfo.CurrentUICulture, FlowDirection, Typeface.Default, 12, Foreground);
+                context.FillRectangle(Brushes.Black, new Rect(drawPosition.X, drawPosition.Y, formattedText.Width + 4, formattedText.Height), 2);
+                DrawText(context, label, new Point(drawPosition.X + 2, drawPosition.Y));
+
+                drawPosition = new Point(drawPosition.X + formattedText.Width + 6, drawPosition.Y);
             }
         }
     }
