@@ -54,5 +54,8 @@
     <Compile Update="Hotspot\HotspotProjectView.axaml.cs">
       <DependentUpon>HotspotProjectView.axaml</DependentUpon>
     </Compile>
+    <Compile Update="Hotspot\RenameLabelWindow.axaml.cs">
+      <DependentUpon>RenameLabelWindow.axaml</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

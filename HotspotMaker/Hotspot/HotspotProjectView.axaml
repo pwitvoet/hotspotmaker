@@ -239,6 +239,10 @@
                                                 <controls:LabelsTextBox x:Name="HotspotRectangleLabelsTextBox" Labels="{Binding Labels.Value}" MinWidth="200" Margin="5"
                                                                         PlaceholderText="{Binding Labels.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
                                                                         LostFocus="TextBox_LostFocus" />
+
+                                                <Button Content="Add label" Command="{Binding $parent[Border].DataContext.AddLabelToHotspotRectangles}" Margin="5" />
+                                                <Button Content="Rename label" Command="{Binding $parent[Border].DataContext.RenameLabelInHotspotRectangles}" IsEnabled="{Binding HasLabels}" Margin="5" />
+                                                <Button Content="Remove label" Command="{Binding $parent[Border].DataContext.RemoveLabelFromHotspotRectangles}" IsEnabled="{Binding HasLabels}" Margin="5" />
                                             </StackPanel>
                                         </StackPanel>
                                     </GroupBox>

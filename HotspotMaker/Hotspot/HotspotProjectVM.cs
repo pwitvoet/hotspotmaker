@@ -367,6 +367,145 @@ namespace HotspotMaker.Hotspot
         public void FocusHotspotRectangleLabels()
             => RaiseHotspotRectangleLabelsFocusRequested();
 
+        public async Task AddLabelToHotspotRectangles()
+        {
+            if (RectangleSelection.IsEmpty)
+                return;
+
+
+            var newLabel = await MessageBox.ShowTextBox(
+                "Add label",
+                "Enter the new label:",
+                "label");
+            if (string.IsNullOrEmpty(newLabel))
+                return;
+
+            var affectedRectangles = RectangleSelection.Rectangles
+                .Where(rectangleVM => !rectangleVM.Labels.Contains(newLabel, StringComparer.InvariantCultureIgnoreCase))
+                .ToArray();
+            if (!affectedRectangles.Any())
+                return;
+
+            var newLabels = affectedRectangles
+                .Select(rectangleVM => rectangleVM.Labels.Append(newLabel).ToArray())
+                .ToArray();
+            var oldLabels = affectedRectangles
+                .Select(rectangleVM => rectangleVM.Labels)
+                .ToArray();
+
+            PerformUndoableAction(
+                () =>
+                {
+                    for (int i = 0; i < affectedRectangles.Length; i++)
+                        affectedRectangles[i].Labels = newLabels[i];
+                },
+                () =>
+                {
+                    for (int i = 0; i < affectedRectangles.Length; i++)
+                        affectedRectangles[i].Labels = oldLabels[i];
+                });
+        }
+
+        public async Task RenameLabelInHotspotRectangles()
+        {
+            if (RectangleSelection.IsEmpty || !RectangleSelection.HasLabels)
+                return;
+
+
+            var availableLabels = RectangleSelection.Rectangles
+                .SelectMany(rectangleVM => rectangleVM.Labels)
+                .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                .OrderBy(label => label)
+                .ToArray();
+            if (!availableLabels.Any())
+                return;
+
+            (var confirmed, var index, var newLabel) = await RenameLabelWindow.Show(availableLabels);
+            if (confirmed != true)
+                return;
+
+            var oldLabel = availableLabels[index];
+            if (string.Equals(oldLabel, newLabel, StringComparison.InvariantCultureIgnoreCase))
+                return;
+
+            var affectedRectangles = RectangleSelection.Rectangles
+                .Where(rectangleVM => rectangleVM.Labels.Contains(oldLabel, StringComparer.InvariantCultureIgnoreCase))
+                .ToArray();
+
+            var newLabels = affectedRectangles
+                .Select(rectangleVM =>
+                {
+                    if (rectangleVM.Labels.Contains(newLabel))
+                        return rectangleVM.Labels.Except([oldLabel], StringComparer.InvariantCultureIgnoreCase).ToArray();
+                    else
+                        return rectangleVM.Labels.Select(label => string.Equals(label, oldLabel, StringComparison.InvariantCultureIgnoreCase) ? newLabel : label).ToArray();
+                })
+                .ToArray();
+            var oldLabels = affectedRectangles
+                .Select(rectangleVM => rectangleVM.Labels)
+                .ToArray();
+
+            PerformUndoableAction(
+                () =>
+                {
+                    for (int i = 0; i < affectedRectangles.Length; i++)
+                        affectedRectangles[i].Labels = newLabels[i];
+                },
+                () =>
+                {
+                    for (int i = 0; i < affectedRectangles.Length; i++)
+                        affectedRectangles[i].Labels = oldLabels[i];
+                });
+        }
+
+        public async Task RemoveLabelFromHotspotRectangles()
+        {
+            if (RectangleSelection.IsEmpty || !RectangleSelection.HasLabels)
+                return;
+
+
+            var availableLabels = RectangleSelection.Rectangles
+                .SelectMany(rectangleVM => rectangleVM.Labels)
+                .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                .OrderBy(label => label)
+                .ToArray();
+            if (!availableLabels.Any())
+                return;
+
+            var removeLabelIndex = await MessageBox.ShowComboBox(
+                "Remove label",
+                "Select the label that will be removed:",
+                availableLabels);
+            if (removeLabelIndex == null)
+                return;
+
+            var removeLabel = availableLabels[removeLabelIndex.Value];
+            var affectedRectangles = RectangleSelection.Rectangles
+                .Where(rectangleVM => rectangleVM.Labels.Contains(removeLabel, StringComparer.InvariantCultureIgnoreCase))
+                .ToArray();
+            if (!affectedRectangles.Any())
+                return;
+
+            var newLabels = affectedRectangles
+                .Select(rectangleVM => rectangleVM.Labels.Except([removeLabel], StringComparer.InvariantCultureIgnoreCase).ToArray())
+                .ToArray();
+            var oldLabels = affectedRectangles
+                .Select(rectangleVM => rectangleVM.Labels)
+                .ToArray();
+
+            PerformUndoableAction(
+                () =>
+                {
+                    for (int i = 0; i < affectedRectangles.Length; i++)
+                        affectedRectangles[i].Labels = newLabels[i];
+                },
+                () =>
+                {
+                    for (int i = 0; i < affectedRectangles.Length; i++)
+                        affectedRectangles[i].Labels = oldLabels[i];
+                });
+        }
+
 
         private void UndoSystem_OnActionDone()
         {

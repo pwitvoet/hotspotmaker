@@ -1,0 +1,29 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="150"
+        Width="400" Height="150"
+        x:Class="HotspotMaker.Hotspot.RenameLabelWindow"
+        Title="Rename label">
+    <Grid RowDefinitions="*,Auto">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <TextBlock Grid.Column="0" Grid.Row="0" Text="Rename" Margin="5" VerticalAlignment="Center" />
+
+            <ComboBox x:Name="LabelSelectionComboBox" Grid.Column="1" Grid.Row="0" MinWidth="150" Margin="5" VerticalAlignment="Center"
+                      SelectionChanged="LabelSelectionComboBox_SelectionChanged" />
+
+            <TextBlock Grid.Column="0" Grid.Row="1" Text="to:" Margin="5" VerticalAlignment="Center" />
+
+            <TextBox x:Name="NewLabelTextBox" Grid.Column="1" Grid.Row="1" MinWidth="150" Margin="5" VerticalAlignment="Center"
+                     TextChanged="NewLabelTextBox_TextChanged" />
+        </Grid>
+
+        <Border Grid.Row="1" Background="#D0D0D0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button x:Name="OkButton" Content="Ok" Click="OkButton_Click" Padding="10,2" Margin="5" />
+                <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click" Padding="10,2" Margin="5" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

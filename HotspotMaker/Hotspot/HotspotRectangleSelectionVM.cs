@@ -60,6 +60,8 @@ namespace HotspotMaker.Hotspot
 
         public int SelectionCount => _rectangles.Count;
 
+        public bool HasLabels => Labels.HasMultipleValues || Labels.Value?.Any() == true;
+
 
         private bool SuppressSelectionChangedEvents { get; set; }
 
@@ -361,6 +363,10 @@ namespace HotspotMaker.Hotspot
         private void UpdateIsBottomConcave() => UpdateMultiProperty(IsBottomConcave, r => r.IsBottomConcave);
         private void UpdateIsLeftConcave() => UpdateMultiProperty(IsLeftConcave, r => r.IsLeftConcave);
 
-        private void UpdateLabels() => UpdateMultiProperty(Labels, r => r.Labels);
+        private void UpdateLabels()
+        {
+            UpdateMultiProperty(Labels, r => r.Labels);
+            RaisePropertyChanged(nameof(HasLabels));
+        }
     }
 }
