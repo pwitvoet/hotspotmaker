@@ -374,7 +374,7 @@ namespace HotspotMaker.Hotspot
 
 
             var newLabel = await MessageBox.ShowTextBox(
-                "Add label",
+                "Add label to rectangle(s)",
                 "Enter the new label:",
                 "label");
             if (string.IsNullOrEmpty(newLabel))
@@ -420,7 +420,7 @@ namespace HotspotMaker.Hotspot
             if (!availableLabels.Any())
                 return;
 
-            (var confirmed, var index, var newLabel) = await RenameLabelWindow.Show(availableLabels);
+            (var confirmed, var index, var newLabel) = await RenameLabelWindow.Show("Rename label in rectangle(s)", availableLabels);
             if (confirmed != true)
                 return;
 
@@ -473,7 +473,7 @@ namespace HotspotMaker.Hotspot
                 return;
 
             var removeLabelIndex = await MessageBox.ShowComboBox(
-                "Remove label",
+                "Remove label from rectangle(s)",
                 "Select the label that will be removed:",
                 availableLabels);
             if (removeLabelIndex == null)
@@ -503,6 +503,145 @@ namespace HotspotMaker.Hotspot
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
                         affectedRectangles[i].Labels = oldLabels[i];
+                });
+        }
+
+        public async Task AddLabelToTextures()
+        {
+            if (TextureSelection.IsEmpty)
+                return;
+
+
+            var newLabel = await MessageBox.ShowTextBox(
+                "Add label to texture(s)",
+                "Enter the new label:",
+                "label");
+            if (string.IsNullOrEmpty(newLabel))
+                return;
+
+            var affectedTextures = TextureSelection.Textures
+                .Where(textureVM => !textureVM.Labels.Contains(newLabel, StringComparer.InvariantCultureIgnoreCase))
+                .ToArray();
+            if (!affectedTextures.Any())
+                return;
+
+            var newLabels = affectedTextures
+                .Select(textureVM => textureVM.Labels.Append(newLabel).ToArray())
+                .ToArray();
+            var oldLabels = affectedTextures
+                .Select(textureVM => textureVM.Labels)
+                .ToArray();
+
+            PerformUndoableAction(
+                () =>
+                {
+                    for (int i = 0; i < affectedTextures.Length; i++)
+                        affectedTextures[i].Labels = newLabels[i];
+                },
+                () =>
+                {
+                    for (int i = 0; i < affectedTextures.Length; i++)
+                        affectedTextures[i].Labels = oldLabels[i];
+                });
+        }
+
+        public async Task RenameLabelInTextures()
+        {
+            if (TextureSelection.IsEmpty || !TextureSelection.HasLabels)
+                return;
+
+
+            var availableLabels = TextureSelection.Textures
+                .SelectMany(textureVM => textureVM.Labels)
+                .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                .OrderBy(label => label)
+                .ToArray();
+            if (!availableLabels.Any())
+                return;
+
+            (var confirmed, var index, var newLabel) = await RenameLabelWindow.Show("Rename label in texture(s)", availableLabels);
+            if (confirmed != true)
+                return;
+
+            var oldLabel = availableLabels[index];
+            if (string.Equals(oldLabel, newLabel, StringComparison.InvariantCultureIgnoreCase))
+                return;
+
+            var affectedTextures = TextureSelection.Textures
+                .Where(textureVM => textureVM.Labels.Contains(oldLabel, StringComparer.InvariantCultureIgnoreCase))
+                .ToArray();
+
+            var newLabels = affectedTextures
+                .Select(textureVM =>
+                {
+                    if (textureVM.Labels.Contains(newLabel))
+                        return textureVM.Labels.Except([oldLabel], StringComparer.InvariantCultureIgnoreCase).ToArray();
+                    else
+                        return textureVM.Labels.Select(label => string.Equals(label, oldLabel, StringComparison.InvariantCultureIgnoreCase) ? newLabel : label).ToArray();
+                })
+                .ToArray();
+            var oldLabels = affectedTextures
+                .Select(textureVM => textureVM.Labels)
+                .ToArray();
+
+            PerformUndoableAction(
+                () =>
+                {
+                    for (int i = 0; i < affectedTextures.Length; i++)
+                        affectedTextures[i].Labels = newLabels[i];
+                },
+                () =>
+                {
+                    for (int i = 0; i < affectedTextures.Length; i++)
+                        affectedTextures[i].Labels = oldLabels[i];
+                });
+        }
+
+        public async Task RemoveLabelFromTextures()
+        {
+            if (TextureSelection.IsEmpty || !TextureSelection.HasLabels)
+                return;
+
+
+            var availableLabels = TextureSelection.Textures
+                .SelectMany(textureVM => textureVM.Labels)
+                .Distinct(StringComparer.InvariantCultureIgnoreCase)
+                .OrderBy(label => label)
+                .ToArray();
+            if (!availableLabels.Any())
+                return;
+
+            var removeLabelIndex = await MessageBox.ShowComboBox(
+                "Remove label from texture(s)",
+                "Select the label that will be removed:",
+                availableLabels);
+            if (removeLabelIndex == null)
+                return;
+
+            var removeLabel = availableLabels[removeLabelIndex.Value];
+            var affectedTextures = TextureSelection.Textures
+                .Where(textureVM => textureVM.Labels.Contains(removeLabel, StringComparer.InvariantCultureIgnoreCase))
+                .ToArray();
+            if (!affectedTextures.Any())
+                return;
+
+            var newLabels = affectedTextures
+                .Select(textureVM => textureVM.Labels.Except([removeLabel], StringComparer.InvariantCultureIgnoreCase).ToArray())
+                .ToArray();
+            var oldLabels = affectedTextures
+                .Select(textureVM => textureVM.Labels)
+                .ToArray();
+
+            PerformUndoableAction(
+                () =>
+                {
+                    for (int i = 0; i < affectedTextures.Length; i++)
+                        affectedTextures[i].Labels = newLabels[i];
+                },
+                () =>
+                {
+                    for (int i = 0; i < affectedTextures.Length; i++)
+                        affectedTextures[i].Labels = oldLabels[i];
                 });
         }
 

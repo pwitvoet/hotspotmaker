@@ -23,6 +23,9 @@
         <KeyBinding Gesture="Shift+A" Command="{Binding HotspotProject.AddLabelToHotspotRectangles}" />
         <KeyBinding Gesture="Shift+E" Command="{Binding HotspotProject.RenameLabelInHotspotRectangles}" />
         <KeyBinding Gesture="Shift+R" Command="{Binding HotspotProject.RemoveLabelFromHotspotRectangles}" />
+        <KeyBinding Gesture="Ctrl+Shift+A" Command="{Binding HotspotProject.AddLabelToTextures}" />
+        <KeyBinding Gesture="Ctrl+Shift+E" Command="{Binding HotspotProject.RenameLabelInTextures}" />
+        <KeyBinding Gesture="Ctrl+Shift+R" Command="{Binding HotspotProject.RemoveLabelFromTextures}" />
     </Window.KeyBindings>
     <Grid RowDefinitions="Auto,*,Auto">
         <Menu x:Name="Menu" Grid.Row="0">

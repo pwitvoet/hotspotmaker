@@ -40,6 +40,8 @@ namespace HotspotMaker.Hotspot
 
         public int SelectionCount => _textures.Count;
 
+        public bool HasLabels => Labels.HasMultipleValues || Labels.Value?.Any() == true;
+
 
         public TextureSelectionVM(UndoSystem undoSystem)
             : base(undoSystem)
@@ -182,6 +184,11 @@ namespace HotspotMaker.Hotspot
         private void UpdateHotspotRectangleSet() => UpdateMultiProperty(HotspotRectangleSet, t => t.HotspotRectangleSet);
         private void UpdateFallbackTextureNamePattern() => UpdateMultiProperty(FallbackTextureNamePattern, t => t.FallbackTextureNamePattern);
         private void UpdateFallbackScoreThreshold() => UpdateMultiProperty(FallbackScoreThreshold, t => t.FallbackScoreThreshold);
-        private void UpdateLabels() => UpdateMultiProperty(Labels, t => t.Labels);
+
+        private void UpdateLabels()
+        {
+            UpdateMultiProperty(Labels, t => t.Labels);
+            RaisePropertyChanged(nameof(HasLabels));
+        }
     }
 }

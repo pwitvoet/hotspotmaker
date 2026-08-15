@@ -9,9 +9,9 @@ namespace HotspotMaker.Hotspot
 {
     public partial class RenameLabelWindow : Window
     {
-        public static async Task<(bool?, int, string)> Show(string[] labels)
+        public static async Task<(bool?, int, string)> Show(string title, string[] labels)
         {
-            var window = new RenameLabelWindow(labels);
+            var window = new RenameLabelWindow(title, labels);
             if (!await window.ShowAsDialog() || window.NewLabelTextBox.Text == null)
                 return (null, 0, "");
 
@@ -23,10 +23,11 @@ namespace HotspotMaker.Hotspot
         private bool? Result { get; set; }
 
 
-        public RenameLabelWindow(string[] labels)
+        public RenameLabelWindow(string title, string[] labels)
         {
             InitializeComponent();
 
+            Title = title;
             Labels = labels;
 
             LabelSelectionComboBox.ItemsSource = Labels;

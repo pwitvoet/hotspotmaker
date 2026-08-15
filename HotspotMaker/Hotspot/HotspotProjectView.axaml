@@ -120,6 +120,10 @@
                                         <controls:LabelsTextBox Labels="{Binding Labels.Value}" MinWidth="200" Margin="5"
                                                                 PlaceholderText="{Binding Labels.HasMultipleValues, Converter={StaticResource TrueToMultiValueMessageConverter}}"
                                                                 LostFocus="TextBox_LostFocus" />
+
+                                        <Button Content="Add label" Command="{Binding $parent[Border].DataContext.AddLabelToTextures}" Margin="5" />
+                                        <Button Content="Rename label" Command="{Binding $parent[Border].DataContext.RenameLabelInTextures}" IsEnabled="{Binding HasLabels}" Margin="5" />
+                                        <Button Content="Remove label" Command="{Binding $parent[Border].DataContext.RemoveLabelFromTextures}" IsEnabled="{Binding HasLabels}" Margin="5" />
                                     </StackPanel>
                                 </GroupBox>
                             </StackPanel>
