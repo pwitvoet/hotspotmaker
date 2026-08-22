@@ -19,6 +19,7 @@
         <KeyBinding Gesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" />
         <KeyBinding Gesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" />
         <KeyBinding Gesture="Ctrl+R" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" />
+        <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding HotspotProject.CreateNewHotspotRectangleSet}" />
         <KeyBinding Gesture="F2" Command="{Binding HotspotProject.FocusHotspotRectangleLabels}" />
         <KeyBinding Gesture="Shift+A" Command="{Binding HotspotProject.AddLabelToHotspotRectangles}" />
         <KeyBinding Gesture="Shift+E" Command="{Binding HotspotProject.RenameLabelInHotspotRectangles}" />
