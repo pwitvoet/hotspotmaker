@@ -122,8 +122,12 @@ namespace HotspotMaker.Controls
 
             if (InputTextBox.IsVisible)
             {
-                InputTextBox.Focus();
+                InputTextBox.Focus(NavigationMethod.Tab);
                 InputTextBox.SelectAll();
+            }
+            else if (OptionsComboBox.IsVisible)
+            {
+                OptionsComboBox.Focus(NavigationMethod.Tab);
             }
         }
 
