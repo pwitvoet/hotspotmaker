@@ -376,7 +376,8 @@ namespace HotspotMaker.Hotspot
             var newLabel = await MessageBox.ShowTextBox(
                 "Add label to rectangle(s)",
                 "Enter the new label:",
-                "label");
+                "label",
+                label => string.IsNullOrEmpty(label) ? "Label must not be empty." : label.Contains(' ') ? "Label must not contain spaces." : null);
             if (string.IsNullOrEmpty(newLabel))
                 return;
 
@@ -515,7 +516,8 @@ namespace HotspotMaker.Hotspot
             var newLabel = await MessageBox.ShowTextBox(
                 "Add label to texture(s)",
                 "Enter the new label:",
-                "label");
+                "label",
+                label => string.IsNullOrEmpty(label) ? "Label must not be empty." : label.Contains(' ') ? "Label must not contain spaces." : null);
             if (string.IsNullOrEmpty(newLabel))
                 return;
 
