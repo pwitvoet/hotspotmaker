@@ -10,6 +10,7 @@ using HotspotMaker.Util;
 using MLib.Texturing;
 using MLib.Texturing.Hotspotting;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -108,6 +109,26 @@ namespace HotspotMaker.Hotspot
             set { _isHotspotRectanglePanelVisible = value; RaisePropertyChanged(); }
         }
 
+        private string? _textureFilter;
+        public string? TextureFilter
+        {
+            get => _textureFilter;
+            set
+            {
+                _textureFilter = value;
+                RaisePropertyChanged();
+
+                UpdateFilteredTextures();
+            }
+        }
+
+        private TextureInfoVM[] _filteredTextures = Array.Empty<TextureInfoVM>();
+        public TextureInfoVM[] FilteredTextures
+        {
+            get => _filteredTextures;
+            set { _filteredTextures = value; RaisePropertyChanged(); }
+        }
+
 
         // Derived properties:
         public string WadFilePath => WadFile.FilePath;
@@ -203,6 +224,7 @@ namespace HotspotMaker.Hotspot
                     return textureInfoVM;
                 })
                 .ToArray();
+            FilteredTextures = Textures;
 
             UndoSystem.OnActionDone += UndoSystem_OnActionDone;
             UndoSystem.OnActionUndone += UndoSystem_OnActionUndone;
@@ -240,6 +262,11 @@ namespace HotspotMaker.Hotspot
 
 
         // Commands:
+        public void ClearTextureFilter()
+        {
+            TextureFilter = null;
+        }
+
         public async Task CreateNewHotspotRectangleSet()
         {
             var initialName = $"rectangle_set_#{HotspotRectangleSets.Count}";
@@ -770,6 +797,35 @@ namespace HotspotMaker.Hotspot
                 }
             }
             return bitmap;
+        }
+
+
+        private void UpdateFilteredTextures()
+        {
+            if (TextureFilter == null)
+            {
+                FilteredTextures = Textures;
+            }
+            else
+            {
+                var nameTerms = new List<string>();
+                var labelTerms = new List<string>();
+                foreach (var term in TextureFilter.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (term.StartsWith("label:"))
+                        labelTerms.Add(term.Substring(6));
+                    else
+                        nameTerms.Add(term);
+                }
+
+                FilteredTextures = Textures
+                    .Where(textureVM =>
+                    {
+                        return nameTerms.All(nameTerm => textureVM.Name.Contains(nameTerm, StringComparison.InvariantCultureIgnoreCase)) &&
+                            labelTerms.All(labelTerm => textureVM.Labels.Contains(labelTerm, StringComparer.InvariantCultureIgnoreCase));
+                    })
+                    .ToArray();
+            }
         }
     }
 }
