@@ -412,10 +412,13 @@ namespace HotspotMaker
 
         private void HotspotEditor_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(HotspotEditorVM.IsGridEnabled))
-                RaisePropertyChanged(nameof(IsGridEnabled));
-            else if (e.PropertyName == nameof(HotspotEditorVM.IsCoordinatesVisible))
-                RaisePropertyChanged(nameof(IsCoordinatesVisible));
+            switch (e.PropertyName)
+            {
+                case nameof(HotspotEditorVM.IsGridEnabled): RaisePropertyChanged(nameof(IsGridEnabled)); break;
+                case nameof(HotspotEditorVM.IsCoordinatesVisible): RaisePropertyChanged(nameof(IsCoordinatesVisible)); break;
+                case nameof(HotspotEditorVM.IsIconsVisible): RaisePropertyChanged(nameof(IsIconsVisible)); break;
+                case nameof(HotspotEditorVM.IsRectanglesVisible): RaisePropertyChanged(nameof(IsRectanglesVisible)); break;
+            }
         }
 
         private void Selection_SelectionChanged(HotspotRectangleVM[] deselected, HotspotRectangleVM[] selected)
