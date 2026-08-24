@@ -51,6 +51,10 @@ namespace HotspotMaker.Hotspot
         // Read-only:
         public string Name => TextureInfo.Name;
 
+        public int Width => TextureInfo.Width;
+
+        public int Height => TextureInfo.Height;
+
         public TextureInfo TextureInfo { get; }
 
 

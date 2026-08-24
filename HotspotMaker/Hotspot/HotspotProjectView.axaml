@@ -64,7 +64,13 @@
             <!-- Rectangle editor: -->
             <Border Grid.Row="0" BorderBrush="Black" BorderThickness="1">
                 <Grid RowDefinitions="Auto,*">
-                    <TextBlock Grid.Row="0" Text="{Binding TextureSelection.SingleTexture.Name}" FontWeight="Bold" Margin="5" />
+                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="5">
+                        <TextBlock Text="{Binding TextureSelection.SingleTexture.Name}" FontWeight="Bold" />
+
+                        <TextBlock Text="{Binding TextureSelection.SingleTexture.Width}" Margin="10,0,0,0" />
+                        <TextBlock Text="x" IsVisible="{Binding !!TextureSelection.SingleTexture}" />
+                        <TextBlock Text="{Binding TextureSelection.SingleTexture.Height}" />
+                    </StackPanel>
                     <editor:HotspotEditorView x:Name="EditorView" Grid.Row="1" DataContext="{Binding HotspotEditor}" Focusable="True"
                                               Foreground="White"
                                               IsGridEnabled="{Binding IsGridEnabled}" GridSize="{Binding GridSize}"
