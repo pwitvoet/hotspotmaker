@@ -81,7 +81,9 @@
                     <editor:HotspotEditorView x:Name="EditorView" Grid.Row="1" DataContext="{Binding HotspotEditor}" Focusable="True"
                                               Foreground="White"
                                               IsGridEnabled="{Binding IsGridEnabled}" GridSize="{Binding GridSize}"
-                                              IsCoordinatesVisible="{Binding IsCoordinatesVisible}" IsIconsVisible="{Binding IsIconsVisible}" />
+                                              IsCoordinatesVisible="{Binding IsCoordinatesVisible}"
+                                              IsIconsVisible="{Binding IsIconsVisible}"
+                                              IsRectanglesVisible="{Binding IsRectanglesVisible}" />
                 </Grid>
             </Border>
 

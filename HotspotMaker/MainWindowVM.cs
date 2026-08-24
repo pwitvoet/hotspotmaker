@@ -72,6 +72,7 @@ namespace HotspotMaker
                 RaisePropertyChanged(nameof(IsGridEnabled));
                 RaisePropertyChanged(nameof(IsCoordinatesVisible));
                 RaisePropertyChanged(nameof(IsIconsVisible));
+                RaisePropertyChanged(nameof(IsRectanglesVisible));
                 RaisePropertyChanged();
             }
         }
@@ -95,6 +96,8 @@ namespace HotspotMaker
         public bool IsCoordinatesVisible => HotspotProject?.HotspotEditor.IsCoordinatesVisible == true;
 
         public bool IsIconsVisible => HotspotProject?.HotspotEditor.IsIconsVisible == true;
+
+        public bool IsRectanglesVisible => HotspotProject?.HotspotEditor.IsRectanglesVisible == true;
 
         public IReadOnlyList<string> RecentFilePaths => Settings.RecentFilePaths;
 
@@ -327,6 +330,14 @@ namespace HotspotMaker
                 return;
 
             HotspotProject.HotspotEditor.ToggleIconsDisplay();
+        }
+
+        public void ToggleRectanglesDisplay()
+        {
+            if (HotspotProject == null)
+                return;
+
+            HotspotProject.HotspotEditor.ToggleRectanglesDisplay();
         }
 
 

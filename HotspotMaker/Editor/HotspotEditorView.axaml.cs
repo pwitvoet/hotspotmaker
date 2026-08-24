@@ -66,6 +66,12 @@ public partial class HotspotEditorView : UserControl
         (o, v) => o.IsIconsVisible = v,
         defaultBindingMode: BindingMode.TwoWay);
 
+    public static readonly DirectProperty<HotspotEditorView, bool> IsRectanglesVisibleProperty = AvaloniaProperty.RegisterDirect<HotspotEditorView, bool>(
+        nameof(IsRectanglesVisible),
+        o => o.IsRectanglesVisible,
+        (o, v) => o.IsRectanglesVisible = v,
+        defaultBindingMode: BindingMode.TwoWay);
+
 
     public event Action<HotspotRectangleVM>? RectangleClicked;
 
@@ -113,6 +119,13 @@ public partial class HotspotEditorView : UserControl
     {
         get => _isIconsVisible;
         set { SetAndRaise(IsIconsVisibleProperty, ref _isIconsVisible, value); InvalidateVisual(); }
+    }
+
+    private bool _isRectanglesVisible = true;
+    private bool IsRectanglesVisible
+    {
+        get => _isRectanglesVisible;
+        set { SetAndRaise(IsRectanglesVisibleProperty, ref _isRectanglesVisible, value); InvalidateVisual(); }
     }
 
     private PointerButtons PointerState { get; set; }
@@ -203,8 +216,12 @@ public partial class HotspotEditorView : UserControl
         if (editor != null)
         {
             DrawTexture(context, editor);
-            DrawHotspotRectangles(context, editor);
-            DrawSelectionOutline(context, editor);
+
+            if (IsRectanglesVisible)
+            {
+                DrawHotspotRectangles(context, editor);
+                DrawSelectionOutline(context, editor);
+            }
 
             if (PointerOperation == Operation.AreaSelection)
                 DrawSelectionArea(context, editor);

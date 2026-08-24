@@ -98,6 +98,13 @@ namespace HotspotMaker.Editor
             set { _isIconsVisible = value; RaisePropertyChanged(); }
         }
 
+        private bool _isRectanglesVisible = true;
+        public bool IsRectanglesVisible
+        {
+            get => _isRectanglesVisible;
+            set { _isRectanglesVisible = value; RaisePropertyChanged(); }
+        }
+
 
         // Internal state:
         private Point CurrentOperationStartCoordinate { get; set; }
@@ -263,6 +270,8 @@ namespace HotspotMaker.Editor
         public void ToggleCoordinatesDisplay() => IsCoordinatesVisible = !IsCoordinatesVisible;
 
         public void ToggleIconsDisplay() => IsIconsVisible = !IsIconsVisible;
+
+        public void ToggleRectanglesDisplay() => IsRectanglesVisible = !IsRectanglesVisible;
 
 
         public void StartDuplicateRectanglesOperation(Point startTextureCoordinate, double gridSize, bool snapToGrid)

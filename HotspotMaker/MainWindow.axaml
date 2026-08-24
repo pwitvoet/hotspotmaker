@@ -19,6 +19,7 @@
         <KeyBinding Gesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" />
         <KeyBinding Gesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" />
         <KeyBinding Gesture="Ctrl+R" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" />
+        <KeyBinding Gesture="Ctrl+E" Command="{Binding ToggleRectanglesDisplay}" />
         <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding HotspotProject.CreateNewHotspotRectangleSet}" />
         <KeyBinding Gesture="F2" Command="{Binding HotspotProject.FocusHotspotRectangleLabels}" />
         <KeyBinding Gesture="Shift+A" Command="{Binding HotspotProject.AddLabelToHotspotRectangles}" />
@@ -60,6 +61,8 @@
                           ToggleType="CheckBox" IsChecked="{Binding IsCoordinatesVisible}" />
                 <MenuItem Header="Show ic_ons" InputGesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsIconsVisible}" />
+                <MenuItem Header="Show r_ectangles" InputGesture="Ctrl+E" Command="{Binding ToggleRectanglesDisplay}" IsEnabled="{Binding HasOpenProject}"
+                          ToggleType="CheckBox" IsChecked="{Binding IsRectanglesVisible}" />
                 <Separator />
                 <MenuItem Header="Show _texture panel" InputGesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding HotspotProject.IsTexturePanelVisible}" />
