@@ -147,6 +147,7 @@ public partial class HotspotEditorView : UserControl
     // Brushes and pens:
     private Brush BackgroundBrush { get; } = new SolidColorBrush(0xFF404040);
     private Pen GridPen { get; } = new Pen(0x20FFFFFF);
+    private Pen TextureBoundariesPen { get; } = new Pen(0x80FFFFFF);
 
     private Pen SelectionOutlinePen { get; } = new Pen(0xFFFF0000, 2, DashStyle.Dash);
 
@@ -225,9 +226,9 @@ public partial class HotspotEditorView : UserControl
 
             if (PointerOperation == Operation.AreaSelection)
                 DrawSelectionArea(context, editor);
-        }
 
-        DrawGrid(context);
+            DrawGrid(context, editor);
+        }
 
         if (IsCoordinatesVisible)
             DrawPointerCoordinates(context);
@@ -437,7 +438,7 @@ public partial class HotspotEditorView : UserControl
         // TODO: Also highlight all rectangles that would be selected if the LMB was released at this moment?
     }
 
-    private void DrawGrid(DrawingContext context)
+    private void DrawGrid(DrawingContext context, HotspotEditorVM editor)
     {
         if (!IsGridEnabled || GridSize < 1)
             return;
@@ -466,6 +467,11 @@ public partial class HotspotEditorView : UserControl
             context.DrawLine(GridPen, new Point(0, yPos), new Point(Bounds.Width, yPos));
         }
 
+        var textureImage = editor.TextureImage;
+        if (textureImage != null)
+        {
+            context.DrawRectangle(TextureBoundariesPen, new Rect(CameraOffset.X, CameraOffset.Y, textureImage.Size.Width * CameraScale, textureImage.Size.Height * CameraScale));
+        }
 
         DrawText(context, $"Grid size: {GridSize}", new Point(Bounds.Width - 2, Bounds.Height - 2), HorizontalAlignment.Right, VerticalAlignment.Bottom);
     }
