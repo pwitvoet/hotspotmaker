@@ -27,8 +27,9 @@
             </Grid>
 
             <ListBox Grid.Row="2" Margin="5"
-                        ItemsSource="{Binding FilteredTextures}" SelectedItems="{Binding TextureSelection.Textures}"
+                        ItemsSource="{Binding FilteredTextures}"
                         SelectionMode="Multiple"
+                        SelectionChanged="TexturesListBox_SelectionChanged"
                         ScrollViewer.AllowAutoHide="False">
                 <ListBox.ItemTemplate>
                     <DataTemplate x:DataType="hotspot:TextureInfoVM">

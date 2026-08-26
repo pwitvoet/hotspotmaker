@@ -4,7 +4,6 @@ using HotspotMaker.Util;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
 
@@ -46,27 +45,29 @@ namespace HotspotMaker.Hotspot
         public TextureSelectionVM(UndoSystem undoSystem)
             : base(undoSystem)
         {
-            _textures.CollectionChanged += Textures_CollectionChanged;
-
             HotspotRectangleSet = new NullableMultiValue<HotspotRectangleSetVM?>(value => SetMultiProperty(value, r => r.HotspotRectangleSet, (r, v) => r.HotspotRectangleSet = v));
             FallbackTextureNamePattern = new NullableMultiValue<string?>(value => SetMultiPropertyOngoing(value, r => r.FallbackTextureNamePattern, (r, v) => r.FallbackTextureNamePattern = v, nameof(FallbackTextureNamePattern)));
             FallbackScoreThreshold = new NullableMultiValue<double?>(value => SetMultiPropertyOngoing(value, r => r.FallbackScoreThreshold, (r, v) => r.FallbackScoreThreshold = v, nameof(FallbackScoreThreshold)));
             Labels = new NullableMultiValue<string[]>(value => SetMultiPropertyOngoing(value, r => r.Labels, (r, v) => r.Labels = v, nameof(Labels)), HotspotRectangleProperties.GetLabelsEqualityComparer());
         }
 
-        private void Textures_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        public void UpdateSelection(TextureInfoVM[] selectedTextures, TextureInfoVM[] deselectedTextures)
         {
             StopOngoingAction();
 
-            UpdateMultiProperties();
-
-            var deselectedTextures = e.OldItems?.OfType<TextureInfoVM>().ToArray() ?? Array.Empty<TextureInfoVM>();
             foreach (var textureVM in deselectedTextures)
+            {
+                _textures.Remove(textureVM);
                 textureVM.PropertyChanged -= TextureVM_PropertyChanged;
+            }
 
-            var selectedTextures = e.NewItems?.OfType<TextureInfoVM>().ToArray() ?? Array.Empty<TextureInfoVM>();
             foreach (var textureVM in selectedTextures)
+            {
                 textureVM.PropertyChanged += TextureVM_PropertyChanged;
+                _textures.Add(textureVM);
+            }
+
+            UpdateMultiProperties();
 
             RaiseSelectionChanged(deselectedTextures, selectedTextures);
 

@@ -3,6 +3,7 @@ using Avalonia.Input;
 using HotspotMaker.Controls;
 using HotspotMaker.Util.UI;
 using System;
+using System.Linq;
 
 namespace HotspotMaker.Hotspot;
 
@@ -52,4 +53,7 @@ public partial class HotspotProjectView : UserControl
                 break;
         }
     }
+
+    private void TexturesListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+        => HotspotProjectVM?.TextureSelection.UpdateSelection(e.AddedItems.OfType<TextureInfoVM>().ToArray(), e.RemovedItems.OfType<TextureInfoVM>().ToArray());
 }
