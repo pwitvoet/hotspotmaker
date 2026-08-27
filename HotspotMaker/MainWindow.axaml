@@ -10,63 +10,64 @@
         Title="{Binding WindowTitle}">
     <!-- NOTE: HotKeys in menu items don't work until a menu has been opened at least once, for some reason, hence these key bindings: -->
     <Window.KeyBindings>
-        <KeyBinding Gesture="Ctrl+O" Command="{Binding OpenWadFile}" />
-        <KeyBinding Gesture="Ctrl+S" Command="{Binding SaveCurrentProject}" />
-        <KeyBinding Gesture="Ctrl+W" Command="{Binding CloseCurrentProject}" />
-        <KeyBinding Gesture="Alt+F4" Command="{Binding ExitProgram}" />
-        <KeyBinding Gesture="Ctrl+Z" Command="{Binding UndoLastAction}" />
-        <KeyBinding Gesture="Ctrl+Y" Command="{Binding RedoLastAction}" />
-        <KeyBinding Gesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" />
-        <KeyBinding Gesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" />
-        <KeyBinding Gesture="Ctrl+R" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" />
-        <KeyBinding Gesture="Ctrl+E" Command="{Binding ToggleRectanglesDisplay}" />
-        <KeyBinding Gesture="Ctrl+Shift+N" Command="{Binding HotspotProject.CreateNewHotspotRectangleSet}" />
-        <KeyBinding Gesture="F2" Command="{Binding HotspotProject.FocusHotspotRectangleLabels}" />
-        <KeyBinding Gesture="Shift+A" Command="{Binding HotspotProject.AddLabelToHotspotRectangles}" />
-        <KeyBinding Gesture="Shift+E" Command="{Binding HotspotProject.RenameLabelInHotspotRectangles}" />
-        <KeyBinding Gesture="Shift+R" Command="{Binding HotspotProject.RemoveLabelFromHotspotRectangles}" />
-        <KeyBinding Gesture="Ctrl+Shift+A" Command="{Binding HotspotProject.AddLabelToTextures}" />
-        <KeyBinding Gesture="Ctrl+Shift+E" Command="{Binding HotspotProject.RenameLabelInTextures}" />
-        <KeyBinding Gesture="Ctrl+Shift+R" Command="{Binding HotspotProject.RemoveLabelFromTextures}" />
+        <KeyBinding Gesture="{Binding KeyBindings.OpenWadFile}" Command="{Binding OpenWadFile}" />
+        <KeyBinding Gesture="{Binding KeyBindings.SaveProject}" Command="{Binding SaveCurrentProject}" />
+        <KeyBinding Gesture="{Binding KeyBindings.CloseProject}" Command="{Binding CloseCurrentProject}" />
+        <KeyBinding Gesture="{Binding KeyBindings.ExitProgram}" Command="{Binding ExitProgram}" />
+        <KeyBinding Gesture="{Binding KeyBindings.Undo}" Command="{Binding UndoLastAction}" />
+        <KeyBinding Gesture="{Binding KeyBindings.Redo}" Command="{Binding RedoLastAction}" />
+        <KeyBinding Gesture="{Binding KeyBindings.ToggleCoordinatesDisplay}" Command="{Binding ToggleCoordinatesDisplay}" />
+        <KeyBinding Gesture="{Binding KeyBindings.ToggleIconsDisplay}" Command="{Binding ToggleIconsDisplay}" />
+        <KeyBinding Gesture="{Binding KeyBindings.CreateNewRectangleSet}" Command="{Binding HotspotProject.CreateNewHotspotRectangleSet}" />
+        <KeyBinding Gesture="{Binding KeyBindings.ToggleTexturePanel}" Command="{Binding HotspotProject.ToggleTexturePanel}" />
+        <KeyBinding Gesture="{Binding KeyBindings.ToggleRectanglePanel}" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" />
+        <KeyBinding Gesture="{Binding KeyBindings.ToggleRectanglesDisplay}" Command="{Binding ToggleRectanglesDisplay}" />
+        <KeyBinding Gesture="{Binding KeyBindings.EditRectangleLabels}" Command="{Binding HotspotProject.FocusHotspotRectangleLabels}" />
+        <KeyBinding Gesture="{Binding KeyBindings.AddRectangleLabel}" Command="{Binding HotspotProject.AddLabelToHotspotRectangles}" />
+        <KeyBinding Gesture="{Binding KeyBindings.RenameRectangleLabel}" Command="{Binding HotspotProject.RenameLabelInHotspotRectangles}" />
+        <KeyBinding Gesture="{Binding KeyBindings.RemoveRectangleLabel}" Command="{Binding HotspotProject.RemoveLabelFromHotspotRectangles}" />
+        <KeyBinding Gesture="{Binding KeyBindings.AddTextureLabel}" Command="{Binding HotspotProject.AddLabelToTextures}" />
+        <KeyBinding Gesture="{Binding KeyBindings.RenameTextureLabel}" Command="{Binding HotspotProject.RenameLabelInTextures}" />
+        <KeyBinding Gesture="{Binding KeyBindings.RemoveTextureLabel}" Command="{Binding HotspotProject.RemoveLabelFromTextures}" />
     </Window.KeyBindings>
     <Grid RowDefinitions="Auto,*,Auto">
         <Menu x:Name="Menu" Grid.Row="0">
             <MenuItem x:Name="FileMenuItem" Header="_File">
-                <MenuItem Header="_Open wad file" InputGesture="Ctrl+O" Command="{Binding OpenWadFile}" />
+                <MenuItem Header="_Open wad file" InputGesture="{Binding KeyBindings.OpenWadFile}" Command="{Binding OpenWadFile}" />
                 <Separator x:Name="RecentFilesStartSeparator" IsVisible="False" />
                 <Separator x:Name="RecentFilesEndSeparator" />
-                <MenuItem Header="_Save" InputGesture="Ctrl+S" Command="{Binding SaveCurrentProject}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="_Save" InputGesture="{Binding KeyBindings.SaveProject}" Command="{Binding SaveCurrentProject}" IsEnabled="{Binding HasOpenProject}" />
                 <Separator />
-                <MenuItem Header="_Close" InputGesture="Ctrl+W" Command="{Binding CloseCurrentProject}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="_Close" InputGesture="{Binding KeyBindings.CloseProject}" Command="{Binding CloseCurrentProject}" IsEnabled="{Binding HasOpenProject}" />
                 <Separator />
-                <MenuItem Header="E_xit" InputGesture="Alt+F4" Command="{Binding ExitProgram}" />
+                <MenuItem Header="E_xit" InputGesture="{Binding KeyBindings.ExitProgram}" Command="{Binding ExitProgram}" />
             </MenuItem>
             <MenuItem Header="_Edit">
-                <MenuItem Header="Cu_t" InputGesture="Ctrl+X" Command="{Binding CutSelection}" IsEnabled="{Binding IsCutAvailable}" />
-                <MenuItem Header="_Copy" InputGesture="Ctrl+C" Command="{Binding CopySelection}" IsEnabled="{Binding IsCopyAvailable}" />
-                <MenuItem Header="_Paste" InputGesture="Ctrl+V" Command="{Binding PasteSelection}" IsEnabled="{Binding IsPasteAvailable}" />
+                <MenuItem Header="Cu_t" InputGesture="{Binding KeyBindings.Cut}" Command="{Binding CutSelection}" IsEnabled="{Binding IsCutAvailable}" />
+                <MenuItem Header="_Copy" InputGesture="{Binding KeyBindings.Copy}" Command="{Binding CopySelection}" IsEnabled="{Binding IsCopyAvailable}" />
+                <MenuItem Header="_Paste" InputGesture="{Binding KeyBindings.Paste}" Command="{Binding PasteSelection}" IsEnabled="{Binding IsPasteAvailable}" />
                 <Separator />
-                <MenuItem Header="_Undo" InputGesture="Ctrl+Z" Command="{Binding UndoLastAction}" IsEnabled="{Binding IsUndoAvailable}" />
-                <MenuItem Header="_Redo" InputGesture="Ctrl+Y" Command="{Binding RedoLastAction}" IsEnabled="{Binding IsRedoAvailable}" />
+                <MenuItem Header="_Undo" InputGesture="{Binding KeyBindings.Undo}" Command="{Binding UndoLastAction}" IsEnabled="{Binding IsUndoAvailable}" />
+                <MenuItem Header="_Redo" InputGesture="{Binding KeyBindings.Redo}" Command="{Binding RedoLastAction}" IsEnabled="{Binding IsRedoAvailable}" />
                 <Separator />
                 <MenuItem Header="_Settings" Command="{Binding OpenSettingsWindow}" />
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="Show _grid" InputGesture="G" Command="{Binding ToggleGrid}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show _grid" InputGesture="{Binding KeyBindings.ToggleGrid}" Command="{Binding ToggleGrid}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsGridEnabled}" />
-                <MenuItem Header="_Increase grid size" InputGesture="OemCloseBrackets" Command="{Binding IncreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
-                <MenuItem Header="_Decrease grid size" InputGesture="OemOpenBrackets" Command="{Binding DecreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="_Increase grid size" InputGesture="{Binding KeyBindings.IncreaseGridSize}" Command="{Binding IncreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
+                <MenuItem Header="_Decrease grid size" InputGesture="{Binding KeyBindings.DecreaseGridSize}" Command="{Binding DecreaseGridSize}" IsEnabled="{Binding HasOpenProject}" />
                 <Separator />
-                <MenuItem Header="Show _coordinates" Command="{Binding ToggleCoordinatesDisplay}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show _coordinates" InputGesture="{Binding KeyBindings.ToggleCoordinatesDisplay}" Command="{Binding ToggleCoordinatesDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsCoordinatesVisible}" />
-                <MenuItem Header="Show ic_ons" InputGesture="Ctrl+I" Command="{Binding ToggleIconsDisplay}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show ic_ons" InputGesture="{Binding KeyBindings.ToggleIconsDisplay}" Command="{Binding ToggleIconsDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsIconsVisible}" />
-                <MenuItem Header="Show r_ectangles" InputGesture="Ctrl+E" Command="{Binding ToggleRectanglesDisplay}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show r_ectangles" InputGesture="{Binding KeyBindings.ToggleRectanglesDisplay}" Command="{Binding ToggleRectanglesDisplay}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding IsRectanglesVisible}" />
                 <Separator />
-                <MenuItem Header="Show _texture panel" InputGesture="Ctrl+T" Command="{Binding HotspotProject.ToggleTexturePanel}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show _texture panel" InputGesture="{Binding KeyBindings.ToggleTexturePanel}" Command="{Binding HotspotProject.ToggleTexturePanel}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding HotspotProject.IsTexturePanelVisible}" />
-                <MenuItem Header="Show _rectangle panel" InputGesture="Ctrl+R" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" IsEnabled="{Binding HasOpenProject}"
+                <MenuItem Header="Show _rectangle panel" InputGesture="{Binding KeyBindings.ToggleRectanglePanel}" Command="{Binding HotspotProject.ToggleHotspotRectanglePanel}" IsEnabled="{Binding HasOpenProject}"
                           ToggleType="CheckBox" IsChecked="{Binding HotspotProject.IsHotspotRectanglePanelVisible}" />
             </MenuItem>
             <!--<MenuItem Header="Help">

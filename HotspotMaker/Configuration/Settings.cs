@@ -124,14 +124,46 @@ namespace HotspotMaker.Configuration
         public KeyBinding? GetKeyBinding(KeyGesture keyGesture)
             => KeyBindings.FirstOrDefault(keyBinding => keyBinding.KeyGesture == keyGesture);
 
+        public KeyGesture? GetKeyGesture(EditorAction editorAction)
+            => KeyBindings.FirstOrDefault(keyBinding => keyBinding.EditorAction == editorAction)?.KeyGesture;
+
 
         private static KeyBinding[] GetDefaultKeyBindings()
         {
             return [
-                // Grid:
+                // Project:
+                new KeyBinding(EditorAction.OpenWadFile, new KeyGesture(Key.O, KeyModifiers.Control)),
+                new KeyBinding(EditorAction.SaveProject, new KeyGesture(Key.S, KeyModifiers.Control)),
+                new KeyBinding(EditorAction.CloseProject, new KeyGesture(Key.W, KeyModifiers.Control)),
+                new KeyBinding(EditorAction.ExitProgram, new KeyGesture(Key.F4, KeyModifiers.Alt)),
+
+                // Undo/redo:
+                new KeyBinding(EditorAction.Undo, new KeyGesture(Key.Z, KeyModifiers.Control)),
+                new KeyBinding(EditorAction.Redo, new KeyGesture(Key.Y, KeyModifiers.Control)),
+
+                // Editor view:
                 new KeyBinding(EditorAction.ToggleGrid, new KeyGesture(Key.G)),
                 new KeyBinding(EditorAction.IncreaseGridSize, new KeyGesture(Key.OemCloseBrackets)),
                 new KeyBinding(EditorAction.DecreaseGridSize, new KeyGesture(Key.OemOpenBrackets)),
+                new KeyBinding(EditorAction.ToggleCoordinatesDisplay, null),
+                new KeyBinding(EditorAction.ToggleIconsDisplay, new KeyGesture(Key.I, KeyModifiers.Control)),
+                new KeyBinding(EditorAction.ToggleRectanglesDisplay, new KeyGesture(Key.E, KeyModifiers.Control)),
+
+                // Panels:
+                new KeyBinding(EditorAction.ToggleTexturePanel, new KeyGesture(Key.T, KeyModifiers.Control)),
+                new KeyBinding(EditorAction.ToggleRectanglePanel, new KeyGesture(Key.R, KeyModifiers.Control)),
+
+                // Rectangle set:
+                new KeyBinding(EditorAction.CreateNewRectangleSet, new KeyGesture(Key.N, KeyModifiers.Control | KeyModifiers.Shift)),
+
+                // Labels:
+                new KeyBinding(EditorAction.EditRectangleLabels, new KeyGesture(Key.F2)),
+                new KeyBinding(EditorAction.AddRectangleLabel, new KeyGesture(Key.A, KeyModifiers.Shift)),
+                new KeyBinding(EditorAction.RenameRectangleLabel, new KeyGesture(Key.E, KeyModifiers.Shift)),
+                new KeyBinding(EditorAction.RemoveRectangleLabel, new KeyGesture(Key.R, KeyModifiers.Shift)),
+                new KeyBinding(EditorAction.AddTextureLabel, new KeyGesture(Key.A, KeyModifiers.Control | KeyModifiers.Shift)),
+                new KeyBinding(EditorAction.RenameTextureLabel, new KeyGesture(Key.E, KeyModifiers.Control | KeyModifiers.Shift)),
+                new KeyBinding(EditorAction.RemoveTextureLabel, new KeyGesture(Key.R, KeyModifiers.Control | KeyModifiers.Shift)),
 
                 // Selection and copy/paste/delete:
                 new KeyBinding(EditorAction.Cut, new KeyGesture(Key.X, KeyModifiers.Control)),
@@ -224,7 +256,8 @@ namespace HotspotMaker.Configuration
         private static KeyBinding ParseKeyBinding(JsonObject json)
         {
             var editorAction = Enum.Parse<EditorAction>((string?)json["action"]?.AsValue() ?? "");
-            var keyGesture = KeyGesture.Parse((string?)json["key_gesture"]?.AsValue() ?? "");
+            var keyGestureString = (string?)json["key_gesture"]?.AsValue();
+            var keyGesture = keyGestureString != null ? KeyGesture.Parse(keyGestureString) : null;
 
             var presetNode = json["preset"]?.AsObject();
             var preset = presetNode == null ? null : ParsePreset(presetNode);

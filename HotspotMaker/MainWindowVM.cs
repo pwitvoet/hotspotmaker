@@ -77,6 +77,8 @@ namespace HotspotMaker
             }
         }
 
+        public KeyBindings KeyBindings { get; }
+
 
         // Derived properties:
         public bool HasOpenProject => HotspotProject != null;
@@ -112,6 +114,7 @@ namespace HotspotMaker
             StorageProvider = storageProvider;
             Clipboard = clipboard;
             Settings = TryLoadSettings() ?? new Settings();
+            KeyBindings = new KeyBindings(Settings);
 
             UpdateWindowTitle(null);
         }
@@ -289,6 +292,8 @@ namespace HotspotMaker
 
 
             Settings.UpdateKeyBindings(settingsWindowVM.GetKeyBindings());
+            KeyBindings.Update();
+
             TrySaveSettings();
         }
 

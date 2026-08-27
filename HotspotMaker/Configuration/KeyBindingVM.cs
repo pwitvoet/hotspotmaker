@@ -101,9 +101,28 @@ namespace HotspotMaker.Configuration
         {
             switch (editorAction)
             {
+                case EditorAction.OpenWadFile: return "Open wad file";
+                case EditorAction.SaveProject: return "Save project";
+                case EditorAction.CloseProject: return "Close project";
+                case EditorAction.ExitProgram: return "Exit program";
+                case EditorAction.Undo: return "Undo";
+                case EditorAction.Redo: return "Redo";
                 case EditorAction.ToggleGrid: return "Toggle grid";
                 case EditorAction.IncreaseGridSize: return "Increase grid size";
                 case EditorAction.DecreaseGridSize: return "Decrease grid size";
+                case EditorAction.ToggleCoordinatesDisplay: return "Toggle coordinate display";
+                case EditorAction.ToggleIconsDisplay: return "Toggle icons display";
+                case EditorAction.ToggleRectanglesDisplay: return "Toggle rectangle display";
+                case EditorAction.ToggleTexturePanel: return "Toggle texture panel";
+                case EditorAction.ToggleRectanglePanel: return "Toggle rectangle panel";
+                case EditorAction.CreateNewRectangleSet: return "Create new rectangle set";
+                case EditorAction.EditRectangleLabels: return "Edit rectangle labels";
+                case EditorAction.AddRectangleLabel: return "Add rectangle label";
+                case EditorAction.RenameRectangleLabel: return "Rename rectangle label";
+                case EditorAction.RemoveRectangleLabel: return "Remove rectangle label";
+                case EditorAction.AddTextureLabel: return "Add texture label";
+                case EditorAction.RenameTextureLabel: return "Rename texture label";
+                case EditorAction.RemoveTextureLabel: return "Remove texture label";
                 case EditorAction.Cut: return "Cut";
                 case EditorAction.Copy: return "Copy";
                 case EditorAction.Paste: return "Paste";

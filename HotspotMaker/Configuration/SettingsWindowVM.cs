@@ -74,13 +74,47 @@ namespace HotspotMaker.Configuration
         {
             KeyBindingsAndHeaders.Clear();
 
-            KeyBindingsAndHeaders.Add(new GroupHeader("View:"));
+            KeyBindingsAndHeaders.Add(new GroupHeader("Project"));
+            AddKeyBindings(settings,
+                EditorAction.OpenWadFile,
+                EditorAction.SaveProject,
+                EditorAction.CloseProject,
+                EditorAction.ExitProgram);
+
+            KeyBindingsAndHeaders.Add(new GroupHeader("Undo/redo"));
+            AddKeyBindings(settings,
+                EditorAction.Undo,
+                EditorAction.Redo);
+            
+            KeyBindingsAndHeaders.Add(new GroupHeader("Editor view"));
             AddKeyBindings(settings,
                 EditorAction.ToggleGrid,
                 EditorAction.IncreaseGridSize,
-                EditorAction.DecreaseGridSize);
+                EditorAction.DecreaseGridSize,
+                EditorAction.ToggleCoordinatesDisplay,
+                EditorAction.ToggleIconsDisplay,
+                EditorAction.ToggleRectanglesDisplay);
 
-            KeyBindingsAndHeaders.Add(new GroupHeader("Selection:"));
+            KeyBindingsAndHeaders.Add(new GroupHeader("Panels"));
+            AddKeyBindings(settings,
+                EditorAction.ToggleTexturePanel,
+                EditorAction.ToggleRectanglePanel);
+            
+            KeyBindingsAndHeaders.Add(new GroupHeader("Rectangle sets"));
+            AddKeyBindings(settings,
+                EditorAction.CreateNewRectangleSet);
+            
+            KeyBindingsAndHeaders.Add(new GroupHeader("Labels"));
+            AddKeyBindings(settings,
+                EditorAction.EditRectangleLabels,
+                EditorAction.AddRectangleLabel,
+                EditorAction.RenameRectangleLabel,
+                EditorAction.RemoveRectangleLabel,
+                EditorAction.AddTextureLabel,
+                EditorAction.RenameTextureLabel,
+                EditorAction.RemoveTextureLabel);
+
+            KeyBindingsAndHeaders.Add(new GroupHeader("Selection"));
             AddKeyBindings(settings,
                 EditorAction.Cut,
                 EditorAction.Copy,
@@ -92,7 +126,7 @@ namespace HotspotMaker.Configuration
                 EditorAction.MoveDown,
                 EditorAction.MoveLeft);
 
-            KeyBindingsAndHeaders.Add(new GroupHeader("Presets:"));
+            KeyBindingsAndHeaders.Add(new GroupHeader("Presets"));
             foreach (var keyBinding in settings.KeyBindings.Where(keyBinding => keyBinding.EditorAction == EditorAction.ApplyPreset))
                 KeyBindingsAndHeaders.Add(new KeyBindingVM(keyBinding));
         }
