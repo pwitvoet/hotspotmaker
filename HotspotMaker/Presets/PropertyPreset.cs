@@ -1,4 +1,5 @@
-﻿using HotspotMaker.Hotspot;
+﻿using HotspotMaker.History;
+using HotspotMaker.Hotspot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +32,7 @@ namespace HotspotMaker.Presets
         /// Returns an action that will apply this preset to the given hotspot rectangles.
         /// The returned action does not generate undoable actions when called.
         /// </summary>
-        public Action CreateDoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        public Action<UndoContext> CreateDoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
             var rectangles = hotspotRectangles.ToArray();
             switch (Action)
@@ -47,51 +48,63 @@ namespace HotspotMaker.Presets
         /// Captures the current property values of the given hotspot rectangles, and returns an action that will set their properties back to those values.
         /// The returned action does not generate undoable actions when called.
         /// </summary>
-        public Action CreateUndoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        public Action<UndoContext> CreateUndoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
             var rectangles = hotspotRectangles.ToArray();
             var currentValues = rectangles.Select(Property.GetValue).ToArray();
-            return () =>
+            return context =>
             {
                 for (int i = 0; i < rectangles.Length; i++)
+                {
                     Property.SetValue(rectangles[i], currentValues[i]);
+                    rectangles[i].UnregisterModification(context);
+                }
             };
         }
 
 
-        private Action CreateSetValueAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        private Action<UndoContext> CreateSetValueAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
             var value = Value;
-            return () =>
+            return context =>
             {
                 foreach (var hotspotRectangle in hotspotRectangles)
+                {
                     Property.SetValue(hotspotRectangle, value);
+                    hotspotRectangle.RegisterModification(context);
+                }
             };
         }
 
-        private Action CreateCycleValueAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        private Action<UndoContext> CreateCycleValueAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
             if (!hotspotRectangles.Any() || !Property.PossibleValues.Any())
-                return () => { };
+                return context => { };
 
 
             var nextValue = Value;
             if (HasSameValue(hotspotRectangles, out var currentValue))
                 nextValue = GetNextValue(currentValue);
 
-            return () =>
+            return context =>
             {
                 foreach (var hotspotRectangle in hotspotRectangles)
+                {
                     Property.SetValue(hotspotRectangle, nextValue);
+                    hotspotRectangle.RegisterModification(context);
+                }
             };
         }
 
-        private Action CreateInsertValueAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        private Action<UndoContext> CreateInsertValueAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
-            return () =>
+            return context =>
             {
                 foreach (var hotspotRectangle in hotspotRectangles)
+                {
                     Property.InsertValue(hotspotRectangle, Value);
+                    hotspotRectangle.RegisterModification(context);
+                }
             };
         }
 

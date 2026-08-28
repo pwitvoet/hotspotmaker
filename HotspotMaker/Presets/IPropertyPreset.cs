@@ -1,4 +1,5 @@
-﻿using HotspotMaker.Hotspot;
+﻿using HotspotMaker.History;
+using HotspotMaker.Hotspot;
 using System;
 using System.Collections.Generic;
 
@@ -19,8 +20,8 @@ namespace HotspotMaker.Presets
         object? Value { get; }
 
 
-        Action CreateDoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles);
+        Action<UndoContext> CreateDoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles);
 
-        Action CreateUndoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles);
+        Action<UndoContext> CreateUndoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles);
     }
 }

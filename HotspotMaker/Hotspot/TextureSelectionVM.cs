@@ -90,26 +90,30 @@ namespace HotspotMaker.Hotspot
         }
 
 
-        // TODO: This should mark all affected textures as modified! Maybe give undoable actions a unique ID, and give each object a last-modified-by-id property?
         private void SetMultiProperty<TValue>(TValue newValue, Func<TextureInfoVM, TValue> getValue, Action<TextureInfoVM, TValue> setValue)
         {
             var selectedTextures = Textures.ToArray();
             var originalValues = selectedTextures.Select(getValue).ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         setValue(selectedTextures[i], newValue);
+                        selectedTextures[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         setValue(selectedTextures[i], originalValues[i]);
+                        selectedTextures[i].UnregisterModification(context);
+                    }
                 });
         }
 
-        // TODO: Same as above - mark all affected textures as modified!
         private void SetMultiPropertyOngoing<TValue>(TValue newValue, Func<TextureInfoVM, TValue> getValue, Action<TextureInfoVM, TValue> setValue, string propertyName)
         {
             var selectedTextures = Textures.ToArray();
@@ -117,19 +121,24 @@ namespace HotspotMaker.Hotspot
 
             PerformUndoableActionOngoing(
                 propertyName,
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         setValue(selectedTextures[i], newValue);
+                        selectedTextures[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         setValue(selectedTextures[i], originalValues[i]);
+                        selectedTextures[i].UnregisterModification(context);
+                    }
                 });
         }
 
-        // TODO: Same as above - mark all affected textures as modified!
         private void SetMultiPropertyOngoing<TValue>(TValue? newValue, Func<TextureInfoVM, TValue?> getValue, Action<TextureInfoVM, TValue?> setValue, string propertyName)
             where TValue : struct
         {
@@ -138,15 +147,21 @@ namespace HotspotMaker.Hotspot
 
             PerformUndoableActionOngoing(
                 propertyName,
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         setValue(selectedTextures[i], newValue);
+                        selectedTextures[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         setValue(selectedTextures[i], originalValues[i]);
+                        selectedTextures[i].UnregisterModification(context);
+                    }
                 });
         }
 

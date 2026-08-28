@@ -4,20 +4,26 @@ namespace HotspotMaker.History
 {
     public class UndoableAction
     {
-        private Action DoAction { get; }
-        private Action UndoAction { get; }
+        public int ActionID { get; }
+
+        private Action<UndoContext> DoAction { get; }
+        private Action<UndoContext> UndoAction { get; }
 
 
-        public UndoableAction(Action doAction, Action undoAction)
+        public UndoableAction(int id, Action<UndoContext> doAction, Action<UndoContext> undoAction)
         {
+            ActionID = id;
             DoAction = doAction;
             UndoAction = undoAction;
         }
 
         public void Do()
-            => DoAction();
+            => DoAction(new UndoContext(ActionID, ActionType.Do));
 
         public void Undo()
-            => UndoAction();
+            => UndoAction(new UndoContext(ActionID, ActionType.Undo));
+
+        public void Redo()
+            => DoAction(new UndoContext(ActionID, ActionType.Redo));
     }
 }

@@ -206,7 +206,6 @@ namespace HotspotMaker.Hotspot
         }
 
 
-        // TODO: This should mark all affected rectangles as modified! Maybe give undoable actions a unique ID, and give each object a last-modified-by-id property?
         private void SetMultiProperty<TValue>(TValue newValue, Func<HotspotRectangleVM, TValue> getValue, Action<HotspotRectangleVM, TValue> setValue)
             where TValue : struct
         {
@@ -214,19 +213,24 @@ namespace HotspotMaker.Hotspot
             var originalValues = selectedRectangles.Select(getValue).ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
                         setValue(selectedRectangles[i], newValue);
+                        selectedRectangles[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
                         setValue(selectedRectangles[i], originalValues[i]);
+                        selectedRectangles[i].UnregisterModification(context);
+                    }
                 });
         }
 
-        // TODO: Same as above - mark all affected rectangles as modified!
         private void SetMultiPropertyOngoing<TValue>(TValue newValue, Func<HotspotRectangleVM, TValue> getValue, Action<HotspotRectangleVM, TValue> setValue, string propertyName)
         {
             var selectedRectangles = Rectangles.ToArray();
@@ -234,19 +238,24 @@ namespace HotspotMaker.Hotspot
 
             PerformUndoableActionOngoing(
                 propertyName,
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
                         setValue(selectedRectangles[i], newValue);
+                        selectedRectangles[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
                         setValue(selectedRectangles[i], originalValues[i]);
+                        selectedRectangles[i].UnregisterModification(context);
+                    }
                 });
         }
 
-        // TODO: Same as above - mark all affected rectangles as modified!
         private void SetMultiPropertyOngoing<TValue>(TValue? newValue, Func<HotspotRectangleVM, TValue?> getValue, Action<HotspotRectangleVM, TValue?> setValue, string propertyName)
             where TValue : struct
         {
@@ -255,15 +264,21 @@ namespace HotspotMaker.Hotspot
 
             PerformUndoableActionOngoing(
                 propertyName,
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
                         setValue(selectedRectangles[i], newValue);
+                        selectedRectangles[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
+                    {
                         setValue(selectedRectangles[i], originalValues[i]);
+                        selectedRectangles[i].UnregisterModification(context);
+                    }
                 });
         }
 

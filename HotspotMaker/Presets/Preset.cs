@@ -1,4 +1,5 @@
-﻿using HotspotMaker.Hotspot;
+﻿using HotspotMaker.History;
+using HotspotMaker.Hotspot;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,29 +21,29 @@ namespace HotspotMaker.Presets
         }
 
 
-        public Action CreateDoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        public Action<UndoContext> CreateDoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
             var doActions = PropertyPresets
                 .Select(propertyPreset => propertyPreset.CreateDoAction(hotspotRectangles))
                 .ToArray();
 
-            return () =>
+            return context =>
             {
                 foreach (var doAction in doActions)
-                    doAction();
+                    doAction(context);
             };
         }
 
-        public Action CreateUndoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
+        public Action<UndoContext> CreateUndoAction(IReadOnlyList<HotspotRectangleVM> hotspotRectangles)
         {
             var undoActions = PropertyPresets
                 .Select(propertyPreset => propertyPreset.CreateUndoAction(hotspotRectangles))
                 .ToArray();
 
-            return () =>
+            return context =>
             {
                 foreach (var undoAction in undoActions)
-                    undoAction();
+                    undoAction(context);
             };
         }
     }

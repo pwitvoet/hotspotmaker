@@ -145,10 +145,7 @@ namespace HotspotMaker.Hotspot
             {
                 return base.IsModified ||
                     Textures.Any(textureVM => textureVM.IsModified) ||
-                    TextureSelection.IsModified ||
-                    HotspotRectangleSets.Skip(1).Any(rectangleSetVM => rectangleSetVM.IsModified) ||
-                    RectangleSelection.IsModified ||
-                    HotspotEditor.IsModified;
+                    HotspotRectangleSets.Skip(1).Any(rectangleSetVM => rectangleSetVM.IsModified);
             }
         }
 
@@ -255,9 +252,6 @@ namespace HotspotMaker.Hotspot
 
             foreach (var rectangleSetVM in HotspotRectangleSets.Skip(1))
                 rectangleSetVM.MarkAsUnmodified();
-
-            RectangleSelection.MarkAsUnmodified();
-            HotspotEditor.MarkAsUnmodified();
         }
 
 
@@ -293,19 +287,27 @@ namespace HotspotMaker.Hotspot
             var previousRectangleSets = selectedTextures.Select(textureVM => textureVM.HotspotRectangleSet).ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     HotspotRectangleSets.Add(newRectangleSet);
+                    RegisterModification(context);
 
                     foreach (var textureVM in selectedTextures)
+                    {
                         textureVM.HotspotRectangleSet = newRectangleSet;
+                        textureVM.RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedTextures.Length; i++)
+                    {
                         selectedTextures[i].HotspotRectangleSet = previousRectangleSets[i];
+                        selectedTextures[i].UnregisterModification(context);
+                    }
 
                     HotspotRectangleSets.Remove(newRectangleSet);
+                    UnregisterModification(context);
                 });
         }
 
@@ -336,8 +338,16 @@ namespace HotspotMaker.Hotspot
 
 
             PerformUndoableAction(
-                () => selectedRectangleSet.WithoutUndo(() => selectedRectangleSet.Name = newName),
-                () => selectedRectangleSet.WithoutUndo(() => selectedRectangleSet.Name = oldName));
+                context =>
+                {
+                    selectedRectangleSet.WithoutUndo(() => selectedRectangleSet.Name = newName);
+                    selectedRectangleSet.RegisterModification(context);
+                },
+                context =>
+                {
+                    selectedRectangleSet.WithoutUndo(() => selectedRectangleSet.Name = oldName);
+                    selectedRectangleSet.UnregisterModification(context);
+                });
         }
 
         public async Task DeleteHotspotRectangleSet()
@@ -359,16 +369,18 @@ namespace HotspotMaker.Hotspot
             var rectangleSetIndex = HotspotRectangleSets.IndexOf(selectedRectangleSet);
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     foreach (var textureVM in affectedTextures)
                         textureVM.HotspotRectangleSet = NoHotspotRectangleSet;
 
                     HotspotRectangleSets.Remove(selectedRectangleSet);
+                    RegisterModification(context);
                 },
-                () =>
+                context =>
                 {
                     HotspotRectangleSets.Insert(rectangleSetIndex, selectedRectangleSet);
+                    UnregisterModification(context);
 
                     foreach (var textureVM in affectedTextures)
                         textureVM.HotspotRectangleSet = selectedRectangleSet;
@@ -422,15 +434,21 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
+                    {
                         affectedRectangles[i].Labels = newLabels[i];
+                        affectedRectangles[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
+                    {
                         affectedRectangles[i].Labels = oldLabels[i];
+                        affectedRectangles[i].UnregisterModification(context);
+                    }
                 });
         }
 
@@ -474,15 +492,21 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
+                    {
                         affectedRectangles[i].Labels = newLabels[i];
+                        affectedRectangles[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
+                    {
                         affectedRectangles[i].Labels = oldLabels[i];
+                        affectedRectangles[i].UnregisterModification(context);
+                    }
                 });
         }
 
@@ -522,15 +546,21 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
+                    {
                         affectedRectangles[i].Labels = newLabels[i];
+                        affectedRectangles[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedRectangles.Length; i++)
+                    {
                         affectedRectangles[i].Labels = oldLabels[i];
+                        affectedRectangles[i].UnregisterModification(context);
+                    }
                 });
         }
 
@@ -562,15 +592,21 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedTextures.Length; i++)
+                    {
                         affectedTextures[i].Labels = newLabels[i];
+                        affectedTextures[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedTextures.Length; i++)
+                    {
                         affectedTextures[i].Labels = oldLabels[i];
+                        affectedTextures[i].UnregisterModification(context);
+                    }
                 });
         }
 
@@ -614,15 +650,21 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedTextures.Length; i++)
+                    {
                         affectedTextures[i].Labels = newLabels[i];
+                        affectedTextures[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedTextures.Length; i++)
+                    {
                         affectedTextures[i].Labels = oldLabels[i];
+                        affectedTextures[i].UnregisterModification(context);
+                    }
                 });
         }
 
@@ -662,15 +704,21 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedTextures.Length; i++)
+                    {
                         affectedTextures[i].Labels = newLabels[i];
+                        affectedTextures[i].RegisterModification(context);
+                    }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < affectedTextures.Length; i++)
+                    {
                         affectedTextures[i].Labels = oldLabels[i];
+                        affectedTextures[i].UnregisterModification(context);
+                    }
                 });
         }
 
@@ -704,11 +752,8 @@ namespace HotspotMaker.Hotspot
 
         private void TextureSelection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            switch (e.PropertyName)
-            {
-                case nameof(TextureSelectionVM.SingleTexture): UpdateTextureDisplay(); break;
-                case nameof(TextureSelectionVM.IsModified): RaisePropertyChanged(nameof(IsModified)); break;
-            }
+            if (e.PropertyName == nameof(TextureSelectionVM.SingleTexture))
+                UpdateTextureDisplay();
         }
 
         private void TextureInfoVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -718,12 +763,14 @@ namespace HotspotMaker.Hotspot
                 if (sender is TextureInfoVM textureInfoVM && textureInfoVM == TextureSelection.SingleTexture)
                     UpdateSelectedHotspotRectangleSet();
             }
+            else if (e.PropertyName == nameof(TextureInfoVM.IsModified))
+            {
+                RaisePropertyChanged(nameof(IsModified));
+            }
         }
 
         private void RectangleSelection_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(HotspotRectangleSelectionVM.IsModified))
-                RaisePropertyChanged(nameof(IsModified));
         }
 
         private void HotspotRectangleSets_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

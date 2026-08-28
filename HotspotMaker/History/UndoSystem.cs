@@ -23,18 +23,16 @@ namespace HotspotMaker.History
         private Stack<UndoableAction> UndoableActions { get; } = new();
         private Stack<UndoableAction> RedoableActions { get; } = new();
 
+        private int NextActionID { get; set; } = 1;
+
 
         /// <summary>
         /// Executes the given 'do' action, and stores the do and undo actions so they can be undone and redone in the future.
         /// </summary>
-        public void PerformUndoableAction(Action doAction, Action undoAction)
+        public void PerformUndoableAction(Action<UndoContext> doAction, Action<UndoContext> undoAction)
         {
-            var undoableAction = new UndoableAction(doAction, undoAction);
-            undoableAction.Do();
-            UndoableActions.Push(undoableAction);
-            RedoableActions.Clear();
-
-            OnActionDone?.Invoke();
+            var undoableAction = new UndoableAction(NextActionID++, doAction, undoAction);
+            PerformAndRegisterUndoableAction(new UndoableAction(NextActionID++, doAction, undoAction));
         }
 
         /// <summary>
@@ -46,12 +44,13 @@ namespace HotspotMaker.History
         /// and <see cref="ReplaceCurrentUndoableAction(Action, Action)"/> for each subsequent step.
         /// </para>
         /// </summary>
-        public void ReplaceCurrentUndoableAction(Action doAction, Action undoAction)
+        public void ReplaceCurrentUndoableAction(Action<UndoContext> doAction, Action<UndoContext> undoAction)
         {
+            var id = 0;
             if (UndoableActions.Any())
-                UndoableActions.Pop();
+                id = UndoableActions.Pop().ActionID;
 
-            PerformUndoableAction(doAction, undoAction);
+            PerformAndRegisterUndoableAction(new UndoableAction(id, doAction, undoAction));
         }
 
         /// <summary>
@@ -77,11 +76,21 @@ namespace HotspotMaker.History
             if (RedoableActions.Any())
             {
                 var undoableAction = RedoableActions.Pop();
-                undoableAction.Do();
+                undoableAction.Redo();
                 UndoableActions.Push(undoableAction);
 
                 OnActionRedone?.Invoke();
             }
+        }
+
+
+        private void PerformAndRegisterUndoableAction(UndoableAction undoableAction)
+        {
+            undoableAction.Do();
+            UndoableActions.Push(undoableAction);
+            RedoableActions.Clear();
+
+            OnActionDone?.Invoke();
         }
     }
 }

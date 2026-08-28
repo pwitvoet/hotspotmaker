@@ -207,15 +207,19 @@ namespace HotspotMaker.Editor
             }
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     foreach (var rectangleVM in rectangleVMs)
                         rectangleSet.Rectangles.Add(rectangleVM);
+
+                    rectangleSet.RegisterModification(context);
                 },
-                () =>
+                context =>
                 {
                     foreach (var rectangleVM in rectangleVMs)
                         rectangleSet.Rectangles.Remove(rectangleVM);
+
+                    rectangleSet.UnregisterModification(context);
                 });
 
             // Select the newly pasted rectangles:
@@ -288,15 +292,19 @@ namespace HotspotMaker.Editor
 
             PerformUndoableActionOngoing(
                 "DuplicateRectangles",
-                () =>
+                context =>
                 {
                     foreach (var rectangleVM in duplicatedRectangles)
                         rectangleSet.Rectangles.Add(rectangleVM);
+
+                    rectangleSet.RegisterModification(context);
                 },
-                () =>
+                context =>
                 {
                     foreach (var rectangleVM in duplicatedRectangles)
                         rectangleSet.Rectangles.Remove(rectangleVM);
+
+                    rectangleSet.UnregisterModification(context);
                 });
 
             CurrentOperationStartCoordinate = startTextureCoordinate;
@@ -349,7 +357,7 @@ namespace HotspotMaker.Editor
 
             PerformUndoableActionOngoing(
                 "MoveRectangles",
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                     {
@@ -357,9 +365,10 @@ namespace HotspotMaker.Editor
                         var originalPosition = originalPositions[i];
 
                         rectangleVM.SetDimensions(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.RegisterModification(context);
                     }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                     {
@@ -367,6 +376,7 @@ namespace HotspotMaker.Editor
                         var originalPosition = originalPositions[i];
 
                         rectangleVM.SetDimensions(originalPosition.X, originalPosition.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.UnregisterModification(context);
                     }
                 });
         }
@@ -440,7 +450,7 @@ namespace HotspotMaker.Editor
 
             PerformUndoableActionOngoing(
                 "ResizeRectangles",
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                     {
@@ -452,9 +462,10 @@ namespace HotspotMaker.Editor
                             Math.Round(newBounds.Top + (originalSize.Y - originalBounds.Top) * scaleY, maxDigits),
                             Math.Round(originalSize.Width * scaleX, maxDigits),
                             Math.Round(originalSize.Height * scaleY, maxDigits));
+                        rectangleVM.RegisterModification(context);
                     }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                     {
@@ -462,6 +473,7 @@ namespace HotspotMaker.Editor
                         var originalSize = originalSizes[i];
 
                         rectangleVM.SetDimensions(originalSize.X, originalSize.Y, originalSize.Width, originalSize.Height);
+                        rectangleVM.UnregisterModification(context);
                     }
                 });
         }
@@ -478,7 +490,7 @@ namespace HotspotMaker.Editor
 
             PerformUndoableActionOngoing(
                 "MoveRectanglesByOffset",
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                     {
@@ -486,9 +498,10 @@ namespace HotspotMaker.Editor
                         var originalPosition = originalPositions[i];
 
                         rectangleVM.SetDimensions(originalPosition.X + offset.X, originalPosition.Y + offset.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.RegisterModification(context);
                     }
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                     {
@@ -496,6 +509,7 @@ namespace HotspotMaker.Editor
                         var originalPosition = originalPositions[i];
 
                         rectangleVM.SetDimensions(originalPosition.X, originalPosition.Y, rectangleVM.Width, rectangleVM.Height);
+                        rectangleVM.UnregisterModification(context);
                     }
                 });
         }
@@ -521,13 +535,21 @@ namespace HotspotMaker.Editor
             var newRectangleVM = new HotspotRectangleVM(newRectangle, UndoSystem);
 
             var applyDefaultPreset = Settings.DefaultPreset.CreateDoAction([newRectangleVM]);
-            applyDefaultPreset();
+            applyDefaultPreset(UndoContext.None);
 
 
             PerformUndoableActionOngoing(
                 "CreateRectangle",
-                () => rectangleSet.Rectangles.Add(newRectangleVM),
-                () => rectangleSet.Rectangles.Remove(newRectangleVM));
+                context =>
+                {
+                    rectangleSet.Rectangles.Add(newRectangleVM);
+                    rectangleSet.RegisterModification(context);
+                },
+                context =>
+                {
+                    rectangleSet.Rectangles.Remove(newRectangleVM);
+                    rectangleSet.UnregisterModification(context);
+                });
 
             CurrentOperationStartCoordinate = startTextureCoordinate;
             CurrentOperationRectangles = [newRectangleVM];
@@ -621,15 +643,19 @@ namespace HotspotMaker.Editor
                 .ToArray();
 
             PerformUndoableAction(
-                () =>
+                context =>
                 {
                     foreach (var rectangleVM in selectedRectangles)
                         rectangleSet.Rectangles.Remove(rectangleVM);
+
+                    rectangleSet.RegisterModification(context);
                 },
-                () =>
+                context =>
                 {
                     for (int i = 0; i < selectedRectangles.Length; i++)
                         rectangleSet.Rectangles.Insert(originalIndices[i], selectedRectangles[i]);
+
+                    rectangleSet.UnregisterModification(context);
                 });
         }
 
