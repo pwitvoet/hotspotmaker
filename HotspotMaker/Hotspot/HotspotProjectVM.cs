@@ -873,7 +873,7 @@ namespace HotspotMaker.Hotspot
         private void UpdateFilteredAndGroupedTextures()
         {
             var filteredTextures = GetFilteredTextures(Textures, TextureFilter);
-            var groupedTextures = GetGroupedTextures(filteredTextures, HotspotRectangleSets, TextureGrouping);
+            var groupedTextures = GetGroupedTextures(filteredTextures, HotspotRectangleSets, TextureGrouping, includeAllRectangleSets: string.IsNullOrEmpty(TextureFilter));
             FilteredAndGroupedTextures = groupedTextures;
         }
 
@@ -905,17 +905,24 @@ namespace HotspotMaker.Hotspot
                 .ToArray();
         }
 
-        private static object[] GetGroupedTextures(TextureInfoVM[] textures, IReadOnlyList<HotspotRectangleSetVM> rectangleSets, TextureGrouping textureGrouping)
+        private static object[] GetGroupedTextures(TextureInfoVM[] textures, IReadOnlyList<HotspotRectangleSetVM> rectangleSets, TextureGrouping textureGrouping, bool includeAllRectangleSets)
         {
             if (textureGrouping == TextureGrouping.GroupByRectangleSet)
             {
-                var groups = textures
+                var groupsLookup = textures
                     .GroupBy(textureVM => textureVM.HotspotRectangleSet?.Name ?? "")
                     .Select(group => new TextureGroupVM(group.Key, group.ToArray()))
                     .ToDictionary(groupVM => groupVM.Name, groupVM => groupVM);
 
-                return rectangleSets
-                    .Select(rectangleSetVM => groups.TryGetValue(rectangleSetVM.Name, out var groupVM) ? groupVM : new TextureGroupVM(rectangleSetVM.Name, []))
+                var groups = groupsLookup.Values.ToArray();
+                if (includeAllRectangleSets)
+                {
+                    groups = rectangleSets
+                        .Select(rectangleSetVM => groupsLookup.TryGetValue(rectangleSetVM.Name, out var groupVM) ? groupVM : new TextureGroupVM(rectangleSetVM.Name, []))
+                        .ToArray();
+                }
+
+                return groups
                     .OrderBy(groupVM => groupVM.Name)
                     .ToArray();
             }
