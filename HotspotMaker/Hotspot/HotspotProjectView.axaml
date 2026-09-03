@@ -17,7 +17,7 @@
 
     <Grid Grid.Row="1" ColumnDefinitions="200,*,200">
         <!-- Textures list: -->
-        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*">
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*">
             <TextBlock Grid.Row="0" Text="Textures" FontWeight="Bold" Margin="5" />
 
             <!-- Filter: -->
@@ -26,13 +26,23 @@
                 <Button Grid.Column="1" Content="x" Command="{Binding ClearTextureFilter}" Margin="0,0,5,0" VerticalAlignment="Center" />
             </Grid>
 
-            <ListBox Grid.Row="2" Margin="5"
-                        ItemsSource="{Binding FilteredTextures}"
+            <ComboBox Grid.Row="2" ItemsSource="{Binding AvailableTextureGroupings}" SelectedValue="{Binding TextureGrouping}" Margin="5" />
+
+            <controls:CustomTreeView x:Name="TexturesTreeView" Grid.Row="3" Margin="5"
+                        ItemsSource="{Binding FilteredAndGroupedTextures}"
                         SelectionMode="Multiple"
-                        SelectionChanged="TexturesListBox_SelectionChanged"
+                        CustomSelectionChanged="TexturesTreeView_SelectionChanged"
                         ScrollViewer.AllowAutoHide="False">
-                <ListBox.ItemTemplate>
-                    <DataTemplate x:DataType="hotspot:TextureInfoVM">
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="True" />
+                    </Style>
+                </TreeView.Styles>
+                <TreeView.DataTemplates>
+                    <TreeDataTemplate x:DataType="hotspot:TextureGroupVM" ItemsSource="{Binding Children}">
+                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Background="#E0E0E0" />
+                    </TreeDataTemplate>
+                    <TreeDataTemplate x:DataType="hotspot:TextureInfoVM">
                         <TextBlock Text="{Binding Name}" Classes.IsModified="{Binding IsModified}" Classes.HasRectangleSet="{Binding HasHotspotRectangleSet}">
                             <TextBlock.Styles>
                                 <Style Selector="TextBlock.IsModified">
@@ -41,12 +51,11 @@
                                 <Style Selector="TextBlock.HasRectangleSet">
                                     <Setter Property="FontWeight" Value="Bold" />
                                 </Style>
-                                <!-- TODO: Also mark textures that use the same hotspot set as the currently selected texture! -->
                             </TextBlock.Styles>
                         </TextBlock>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+                    </TreeDataTemplate>
+                </TreeView.DataTemplates>
+            </controls:CustomTreeView>
         </Grid>
 
         <GridSplitter Grid.Column="0" ResizeDirection="Columns" ResizeBehavior="CurrentAndNext" HorizontalAlignment="Right" Width="5" />

@@ -118,15 +118,28 @@ namespace HotspotMaker.Hotspot
                 _textureFilter = value;
                 RaisePropertyChanged();
 
-                UpdateFilteredTextures();
+                UpdateFilteredAndGroupedTextures();
             }
         }
 
-        private TextureInfoVM[] _filteredTextures = Array.Empty<TextureInfoVM>();
-        public TextureInfoVM[] FilteredTextures
+        private TextureGrouping _textureGrouping;
+        public TextureGrouping TextureGrouping
         {
-            get => _filteredTextures;
-            set { _filteredTextures = value; RaisePropertyChanged(); }
+            get => _textureGrouping;
+            set
+            {
+                _textureGrouping = value;
+                RaisePropertyChanged();
+
+                UpdateFilteredAndGroupedTextures();
+            }
+        }
+
+        private object[] _filteredAndGroupedTextures = [];
+        public object[] FilteredAndGroupedTextures
+        {
+            get => _filteredAndGroupedTextures;
+            set { _filteredAndGroupedTextures = value; RaisePropertyChanged(); }
         }
 
 
@@ -162,6 +175,8 @@ namespace HotspotMaker.Hotspot
         public HotspotEditorVM HotspotEditor { get; }
 
         public HotspotRectangleSetVM NoHotspotRectangleSet { get; }
+
+        public TextureGrouping[] AvailableTextureGroupings { get; } = [TextureGrouping.NoGrouping, TextureGrouping.GroupByRectangleSet];
 
 
         // Internal state:
@@ -221,7 +236,7 @@ namespace HotspotMaker.Hotspot
                     return textureInfoVM;
                 })
                 .ToArray();
-            FilteredTextures = Textures;
+            FilteredAndGroupedTextures = Textures;
 
             UndoSystem.OnActionDone += UndoSystem_OnActionDone;
             UndoSystem.OnActionUndone += UndoSystem_OnActionUndone;
@@ -847,31 +862,55 @@ namespace HotspotMaker.Hotspot
         }
 
 
-        private void UpdateFilteredTextures()
+        private void UpdateFilteredAndGroupedTextures()
         {
-            if (TextureFilter == null)
+            var filteredTextures = GetFilteredTextures(Textures, TextureFilter);
+            var groupedTextures = GetGroupedTextures(filteredTextures, HotspotRectangleSets, TextureGrouping);
+            FilteredAndGroupedTextures = groupedTextures;
+        }
+
+
+        private static TextureInfoVM[] GetFilteredTextures(TextureInfoVM[] textures, string? textureFilter)
+        {
+            if (textureFilter == null)
+                return textures;
+
+            var nameTerms = new List<string>();
+            var labelTerms = new List<string>();
+            foreach (var term in textureFilter.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
-                FilteredTextures = Textures;
+                if (term.StartsWith("label:"))
+                    labelTerms.Add(term.Substring(6));
+                else
+                    nameTerms.Add(term);
+            }
+
+            return textures
+                .Where(textureVM =>
+                {
+                    return nameTerms.All(nameTerm => textureVM.Name.Contains(nameTerm, StringComparison.InvariantCultureIgnoreCase)) &&
+                        labelTerms.All(labelTerm => textureVM.Labels.Contains(labelTerm, StringComparer.InvariantCultureIgnoreCase));
+                })
+                .ToArray();
+        }
+
+        private static object[] GetGroupedTextures(TextureInfoVM[] textures, IReadOnlyList<HotspotRectangleSetVM> rectangleSets, TextureGrouping textureGrouping)
+        {
+            if (textureGrouping == TextureGrouping.GroupByRectangleSet)
+            {
+                var groups = textures
+                    .GroupBy(textureVM => textureVM.HotspotRectangleSet?.Name ?? "")
+                    .Select(group => new TextureGroupVM(group.Key, group.ToArray()))
+                    .ToDictionary(groupVM => groupVM.Name, groupVM => groupVM);
+
+                return rectangleSets
+                    .Select(rectangleSetVM => groups.TryGetValue(rectangleSetVM.Name, out var groupVM) ? groupVM : new TextureGroupVM(rectangleSetVM.Name, []))
+                    .OrderBy(groupVM => groupVM.Name)
+                    .ToArray();
             }
             else
             {
-                var nameTerms = new List<string>();
-                var labelTerms = new List<string>();
-                foreach (var term in TextureFilter.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-                {
-                    if (term.StartsWith("label:"))
-                        labelTerms.Add(term.Substring(6));
-                    else
-                        nameTerms.Add(term);
-                }
-
-                FilteredTextures = Textures
-                    .Where(textureVM =>
-                    {
-                        return nameTerms.All(nameTerm => textureVM.Name.Contains(nameTerm, StringComparison.InvariantCultureIgnoreCase)) &&
-                            labelTerms.All(labelTerm => textureVM.Labels.Contains(labelTerm, StringComparer.InvariantCultureIgnoreCase));
-                    })
-                    .ToArray();
+                return textures;
             }
         }
     }

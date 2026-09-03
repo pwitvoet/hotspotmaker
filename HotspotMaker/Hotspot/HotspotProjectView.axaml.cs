@@ -54,6 +54,6 @@ public partial class HotspotProjectView : UserControl
         }
     }
 
-    private void TexturesListBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void TexturesTreeView_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         => HotspotProjectVM?.TextureSelection.UpdateSelection(e.AddedItems.OfType<TextureInfoVM>().ToArray(), e.RemovedItems.OfType<TextureInfoVM>().ToArray());
 }
