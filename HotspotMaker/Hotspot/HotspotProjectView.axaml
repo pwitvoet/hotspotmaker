@@ -17,7 +17,7 @@
 
     <Grid Grid.Row="1" ColumnDefinitions="200,*,200">
         <!-- Textures list: -->
-        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,*">
+        <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto,*">
             <TextBlock Grid.Row="0" Text="Textures" FontWeight="Bold" Margin="5" />
 
             <!-- Filter: -->
@@ -28,7 +28,9 @@
 
             <ComboBox Grid.Row="2" ItemsSource="{Binding AvailableTextureGroupings}" SelectedValue="{Binding TextureGrouping}" Margin="5" />
 
-            <controls:CustomTreeView x:Name="TexturesTreeView" Grid.Row="3" Margin="5"
+            <TextBlock Grid.Row="3" Text="{Binding TextureCountText}" Margin="5" />
+
+            <controls:CustomTreeView x:Name="TexturesTreeView" Grid.Row="4" Margin="5"
                         ItemsSource="{Binding FilteredAndGroupedTextures}"
                         SelectionMode="Multiple"
                         CustomSelectionChanged="TexturesTreeView_SelectionChanged"
@@ -40,7 +42,10 @@
                 </TreeView.Styles>
                 <TreeView.DataTemplates>
                     <TreeDataTemplate x:DataType="hotspot:TextureGroupVM" ItemsSource="{Binding Children}">
-                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Background="#E0E0E0" />
+                        <StackPanel Orientation="Horizontal" Background="#E0E0E0">
+                            <TextBlock Text="{Binding Name}" FontWeight="Bold" />
+                            <TextBlock Text="{Binding TextureCount, StringFormat=({0})}" IsVisible="{Binding !!TextureCount}" Margin="10,0,0,0" />
+                        </StackPanel>
                     </TreeDataTemplate>
                     <TreeDataTemplate x:DataType="hotspot:TextureInfoVM">
                         <TextBlock Text="{Binding Name}" Classes.IsModified="{Binding IsModified}" Classes.HasRectangleSet="{Binding HasHotspotRectangleSet}">

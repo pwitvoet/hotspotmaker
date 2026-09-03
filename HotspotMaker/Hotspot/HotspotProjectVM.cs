@@ -139,7 +139,13 @@ namespace HotspotMaker.Hotspot
         public object[] FilteredAndGroupedTextures
         {
             get => _filteredAndGroupedTextures;
-            set { _filteredAndGroupedTextures = value; RaisePropertyChanged(); }
+            set
+            {
+                _filteredAndGroupedTextures = value;
+                RaisePropertyChanged();
+
+                RaisePropertyChanged(nameof(TextureCountText));
+            }
         }
 
 
@@ -151,6 +157,8 @@ namespace HotspotMaker.Hotspot
         public bool IsUndoAvailable => UndoSystem.IsUndoAvailable;
 
         public bool IsRedoAvailable => UndoSystem.IsRedoAvailable;
+
+        public string TextureCountText => $"Showing {GetFilteredTextureCount()} of {Textures.Length} textures";
 
         public override bool IsModified
         {
@@ -868,6 +876,9 @@ namespace HotspotMaker.Hotspot
             var groupedTextures = GetGroupedTextures(filteredTextures, HotspotRectangleSets, TextureGrouping);
             FilteredAndGroupedTextures = groupedTextures;
         }
+
+        private int GetFilteredTextureCount()
+            => FilteredAndGroupedTextures.Sum(item => item is TextureGroupVM groupVM ? groupVM.TextureCount : 1);
 
 
         private static TextureInfoVM[] GetFilteredTextures(TextureInfoVM[] textures, string? textureFilter)
