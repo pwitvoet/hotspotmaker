@@ -355,7 +355,16 @@ namespace HotspotMaker
                     return;
             }
 
-            OpenHotspotProject(recentFilePath);
+            try
+            {
+                OpenHotspotProject(recentFilePath);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Failed to open wad file: {ex.GetType().Name}: {ex.Message}.";
+
+                await MessageBox.Show("Error", $"Failed to open project: {ex.GetType().Name}: {ex.Message}.", MessageBoxButtons.Ok);
+            }
         }
 
 
